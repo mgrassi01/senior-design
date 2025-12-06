@@ -9,8 +9,3 @@ in the development cycle.
 
 More information about PlatformIO Unit Testing:
 - https://docs.platformio.org/en/latest/advanced/unit-testing/index.html
-
-
-on this branch, the display works
-the battery display works
-no sensor code has been integrated to this branch
