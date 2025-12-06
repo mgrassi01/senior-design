@@ -1,3 +1,6 @@
+#ifndef SENSORS_HPP
+#define SENSORS_HPP
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -16,28 +19,45 @@
 #include "esp_timer.h"
 #include "esp32-hal-gpio.h"
 
-#define LDR_PIN1 GPIO_NUM_13 // for ADC1_CH0
-#define LDR_PIN2 GPIO_NUM_14// for ADC1_CH2 // i think we can do this
+const float ULTRASONIC_NOTHING_SEEN = 48;
+const float ANGLE_RATIO = 48/50.92;
 
-extern volatile int tilt_state;
-extern int ultrasonic_state;
+#define LDR_PIN1 13 // for ADC1_CH0
+#define LDR_PIN2 14 // for ADC1_CH2 // i think we can do this
+
 // GPIO output/input 
-//#define TILT_PIN_L GPIO_NUM_1
-//#define TILT_PIN_R GPIO_NUM_2
-//#define TILT_PIN_F GPIO_NUM_3
-//#define TILT_PIN_B GPIO_NUM_4
-#define TILT_PIN_L GPIO_NUM_32
-#define TILT_PIN_R GPIO_NUM_33
-#define TILT_PIN_F GPIO_NUM_25
-#define TILT_PIN_B GPIO_NUM_26
-#define TRIG_PIN_L1 GPIO_NUM_5
-#define TRIG_PIN_R1 GPIO_NUM_6
-#define ECHO_PIN_L1 GPIO_NUM_7
-#define ECHO_PIN_R1 GPIO_NUM_8
-#define TRIG_PIN_L2 GPIO_NUM_9
-#define TRIG_PIN_R2 GPIO_NUM_10
-#define ECHO_PIN_L2 GPIO_NUM_11
-#define ECHO_PIN_R2 GPIO_NUM_12
+
+
+const int TILT_PIN_L = 39;
+const int TILT_PIN_R = 36;
+const int TILT_PIN_F = 26;
+const int TILT_PIN_B = 27;
+
+// ---------- BUTTON PINS (safe) ----------
+const int BTN1 = 22;
+const int BTN2 = 1;
+const int BTN3 = 3;
+const int BTN4 = 21;
+// ---------- LED OUTPUT PINS ----------
+const int LED_F1 = 25;   // pick any safe GPIOs
+const int LED_F2 = 32;    // (avoid 1/3 UART, 12/13/14/15 boot/SPI)
+const int LED_F3 = 33;
+
+
+// ---------- ADC ----------
+const int POT_PIN = 34; 
+const int FALL_PIN = 13;                 // goes HIGH when fall is detected
+
+
+const int TRIG_PIN_L1 =  3;
+const int TRIG_PIN_R1 =  19;
+const int TRIG_PIN_L2 =  15; 
+const int TRIG_PIN_R2 =  16;
+
+const int ECHO_PIN_L1 =  35;
+const int ECHO_PIN_R1 =  18;
+const int ECHO_PIN_L2 =  12;
+const int ECHO_PIN_R2 =  17;
 
 #define BUFFER1 2;
 #define BUFFER2 2;
@@ -54,6 +74,14 @@ extern int ultrasonic_state;
 #define ULTRASONIC_OUTPUT_MASK ((1 << TRIG_PIN_L1) | (1 << TRIG_PIN_L2) | (1 << TRIG_PIN_R1) | (1 << TRIG_PIN_R2))
 #define ULTRASONIC_INPUT_MASK ((1 << ECHO_PIN_L1) | (1 << ECHO_PIN_L2) | (1 << ECHO_PIN_R1) | (1 << ECHO_PIN_R2))
 
-
-
+int ldr(int);
+int ultrasonic(int, int);
+void ultrasonic_ldr_isr();
+void ultrasonic_init();
+void ldr_init();
+void tilt_init();
+void timer0_init();
 void sensors_loop();
+  
+
+#endif
