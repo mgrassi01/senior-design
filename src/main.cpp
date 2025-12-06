@@ -5,7 +5,8 @@
 #include "sensors.hpp"
 #include "feedback.hpp"
 #define BUTTON_PIN 27 //gpio button trigger for sensor test
-const uint32_t SMS_COOLDOWN_MS = 5UL * 60UL * 1000UL; //5 mins
+
+const uint32_t SMS_COOLDOWN_MS = 1UL * 10UL * 1000UL; //10 seconds (changed from 5 minutes)
 uint32_t lastSmsMs = 0;
 
 
@@ -81,7 +82,9 @@ void loop() {
     static bool prevAlert = false;
 
     display_loop();
-    feedback_update();
+    #ifdef feedback_en
+        feedback_update();
+    #endif
     bool nowAlert = display_in_alert();
     uint32_t now = millis();
 
