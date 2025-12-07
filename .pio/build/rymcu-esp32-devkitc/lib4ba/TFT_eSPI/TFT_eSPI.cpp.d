@@ -140,7 +140,7 @@
  /home/marie/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal-spi.h \
  .pio/libdeps/rymcu-esp32-devkitc/TFT_eSPI/User_Setup_Select.h \
  .pio/libdeps/rymcu-esp32-devkitc/TFT_eSPI/User_Setup.h \
- .pio/libdeps/rymcu-esp32-devkitc/TFT_eSPI/TFT_Drivers/ILI9341_Defines.h \
+ .pio/libdeps/rymcu-esp32-devkitc/TFT_eSPI/TFT_Drivers/ST7796_Defines.h \
  .pio/libdeps/rymcu-esp32-devkitc/TFT_eSPI/Processors/TFT_eSPI_ESP32.h \
  /home/marie/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/soc/esp32/include/soc/spi_reg.h \
  /home/marie/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/driver/include/driver/spi_master.h \
@@ -233,8 +233,8 @@
  .pio/libdeps/rymcu-esp32-devkitc/TFT_eSPI/Extensions/Button.h \
  .pio/libdeps/rymcu-esp32-devkitc/TFT_eSPI/Extensions/Sprite.h \
  .pio/libdeps/rymcu-esp32-devkitc/TFT_eSPI/Processors/TFT_eSPI_ESP32.c \
- .pio/libdeps/rymcu-esp32-devkitc/TFT_eSPI/TFT_Drivers/ILI9341_Init.h \
- .pio/libdeps/rymcu-esp32-devkitc/TFT_eSPI/TFT_Drivers/ILI9341_Rotation.h \
+ .pio/libdeps/rymcu-esp32-devkitc/TFT_eSPI/TFT_Drivers/ST7796_Init.h \
+ .pio/libdeps/rymcu-esp32-devkitc/TFT_eSPI/TFT_Drivers/ST7796_Rotation.h \
  .pio/libdeps/rymcu-esp32-devkitc/TFT_eSPI/Extensions/Button.cpp \
  .pio/libdeps/rymcu-esp32-devkitc/TFT_eSPI/Extensions/Sprite.cpp \
  .pio/libdeps/rymcu-esp32-devkitc/TFT_eSPI/Extensions/Smooth_font.cpp

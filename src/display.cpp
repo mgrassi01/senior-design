@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include "sensors.hpp"
 #include "pins.hpp"
+
 TFT_eSPI tft;
 
 
@@ -234,7 +235,14 @@ int readPotPercent(){
 
 // ---------- Setup ----------
 void display_setup(){
-  tft.init(); tft.setRotation(1); tft.fillScreen(TFT_BLACK);
+  tft.init(); 
+
+  tft.setRotation(1); 
+  Serial.println("\ndisplay bp 1");
+
+  tft.fillScreen(TFT_BLACK);
+  Serial.println("\ndisplay bp 1.1");
+
 
   // Buttons (unchanged) ...
   pinMode(BTN1, INPUT_PULLUP); pinMode(BTN2, INPUT_PULLUP);
@@ -243,10 +251,12 @@ void display_setup(){
   attachInterrupt(digitalPinToInterrupt(BTN2), isrBtn2, FALLING);
   attachInterrupt(digitalPinToInterrupt(BTN3), isrBtn3, FALLING);
   attachInterrupt(digitalPinToInterrupt(BTN4), isrBtn4, FALLING);
+  Serial.println("\ndisplay bp 2");
 
   // ADC (unchanged) ...
   analogReadResolution(12);
   analogSetPinAttenuation(POT_PIN, ADC_11db);
+  Serial.println("\ndisplay bp 3");
 
   // Timer (unchanged) ...
   uiTimer = timerBegin(0, 80, true);

@@ -174,15 +174,6 @@ int ultrasonic(int TRIG_PIN, int ECHO_PIN){
 
   ultrasonic_state = next_ultrasonic_state;
 
-  // Serial.print("Distance : ");
-  // Serial.print(distance);
-  // Serial.print(" in.  | ultrasonic state: ");
-  // Serial.println(ultrasonic_state);
-
-  // if(distance < 1) {
-  //   Serial.println("Ouch! Stop hitting me!");
-  // }  
-
   return ultrasonic_state;
 }
  
@@ -239,17 +230,6 @@ void tilt_init(){
   pinMode(TILT_PIN_L, INPUT);
   pinMode(TILT_PIN_R, INPUT);
 
-  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_B), tilt_isr(TILT_PIN_B), (RISING | FALLING) ); // not sure this will work
-  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_F), tilt_isr, (RISING | FALLING) ); // not sure this will work
-  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_R), tilt_isr, (RISING | FALLING) ); // not sure this will work
-  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_L), tilt_isr, (RISING | FALLING) ); // not sure this will work
-  
-  // gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
-  // gpio_isr_handler_add(TILT_PIN_B, tilt_isr, (void*) TILT_PIN_B);
-  // gpio_isr_handler_add(TILT_PIN_F, tilt_isr, (void*) TILT_PIN_F);
-  // gpio_isr_handler_add(TILT_PIN_R, tilt_isr, (void*) TILT_PIN_R);
-  // gpio_isr_handler_add(TILT_PIN_L, tilt_isr, (void*) TILT_PIN_L);
-
 }
 
 void ultrasonic_init() {
@@ -283,8 +263,8 @@ void ldr_init() {
 // when the gold lead is tilted DOWN, the circuit closes. 
 void sensors_init() {
 
-  // ldr_init();s
-  // ultrasonic_init();
+  // ldr_init();
+  ultrasonic_init();
   // tilt_init();
   // timer0_init();
 
