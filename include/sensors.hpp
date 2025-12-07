@@ -56,4 +56,4 @@ extern int ultrasonic_state;
 
 
 
-void sensors_loop();
+void sensors_init();

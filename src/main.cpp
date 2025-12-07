@@ -48,11 +48,19 @@ void setup(){
         Serial.println(".");
     }
     Serial.println("\nWi-Fi connected!");
+
+
     display_setup();
+    Serial.println("\ndisplay has been setup");
 
-    sensors_loop();
+    sensors_init();
+    Serial.println("\nsensors have been setup");
 
-    feedback_setup();
+
+    #ifdef feedback_en
+
+        feedback_setup();
+    #endif
 
 }
 

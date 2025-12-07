@@ -2,6 +2,9 @@
 void feedback_setup();
 void feedback_update();
 
+// #define feedback_en
+#ifdef feedback_en
+
 // Define LED pin numbers
 //const int GREEN_LED_GPIO = 1; 
 //const int YELLOW_LED_GPIO = 2;
@@ -29,3 +32,5 @@ void headlights(int ldrState);
 void hapticHell(int stateL, int stateR);
 void audioLogic(int stateL, int stateR);
 void playAudio(const char* filename);
+
+#endif

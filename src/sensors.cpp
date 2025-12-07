@@ -275,11 +275,11 @@ void ldr_init() {
 
 
 // when the gold lead is tilted DOWN, the circuit closes. 
-void sensors_loop() {
+void sensors_init() {
 
-  ldr_init();
-  ultrasonic_init();
-  tilt_init();
-  timer0_init();
+  // ldr_init();
+  // ultrasonic_init();
+  // tilt_init();
+  // timer0_init();
 
 }

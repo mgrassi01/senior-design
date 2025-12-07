@@ -373,4 +373,4 @@ void display_loop(){
 
 bool display_in_alert(){
   return (ui == UI_ALERT);
-}
+} 

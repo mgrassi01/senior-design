@@ -16,7 +16,7 @@ void feedback_setup()
 {
   // Set the LED pins as outputs
   // pinMode(GREEN_LED_GPIO, pin1);   //Need to be changed according to correct pin
-  // pinMode(YELLOW_LED_GPIO, pin2);  //Need to be changed according to correct pin
+  // pinMode(YELLOW_LED_GPIO, pin2);  //N eed to be changed according to correct pin
   // pinMode(RED_LED_GPIO, pin3);
 
   // pinMode(HEADLIGHT_GPIO, pin4);
