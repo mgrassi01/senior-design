@@ -188,34 +188,36 @@ int ultrasonic(int TRIG_PIN, int ECHO_PIN){
  
 
 
+#ifdef esp_ultrasonics
+  void ultrasonic_ldr_isr(){
+    // call the ultrasonic function and get the value
+    // call it for L1 pins
+    int L1_ultrasonic_state = 0;
+    int L2_ultrasonic_state = 0;
+    int R1_ultrasonic_state = 0;
+    int R2_ultrasonic_state = 0;
 
-void ultrasonic_ldr_isr(){
-  // call the ultrasonic function and get the value
-  // call it for L1 pins
-  int L1_ultrasonic_state = 0;
-  int L2_ultrasonic_state = 0;
-  int R1_ultrasonic_state = 0;
-  int R2_ultrasonic_state = 0;
+    L1_ultrasonic_state = ultrasonic(TRIG_PIN_L1, ECHO_PIN_L1);
+    R1_ultrasonic_state = ultrasonic(TRIG_PIN_R1, ECHO_PIN_R1);
 
-  L1_ultrasonic_state = ultrasonic(TRIG_PIN_L1, ECHO_PIN_L1);
-  R1_ultrasonic_state = ultrasonic(TRIG_PIN_R1, ECHO_PIN_R1);
-
-  // the order is L2 | R2 | L1 | R1, MSB is L2
-  ultrasonic_state = (L1_ultrasonic_state << 3) | (R1_ultrasonic_state ) | (L2_ultrasonic_state << 9) | (R2_ultrasonic_state << 6); // update the state
-  
-  int ldr1_state = ldr(LDR_PIN1);
-  int ldr2_state = ldr(LDR_PIN2);
-  ldr_state = (ldr1_state << 3) | ldr2_state;
+    // the order is L2 | R2 | L1 | R1, MSB is L2
+    ultrasonic_state = (L1_ultrasonic_state << 3) | (R1_ultrasonic_state ) | (L2_ultrasonic_state << 9) | (R2_ultrasonic_state << 6); // update the state
+    
+    int ldr1_state = ldr(LDR_PIN1);
+    int ldr2_state = ldr(LDR_PIN2);
+    ldr_state = (ldr1_state << 3) | ldr2_state;
 
 
 
-  
-  // arm the alarm for 1,5, or 10 seconds 
-  int target = 1; // in seconds
-  timerAlarmWrite(timer0, 1000*1000 * target, true); // in us
-  timerAlarmEnable(timer0);
+    
+    // arm the alarm for 1,5, or 10 seconds 
+    int target = 1; // in seconds
+    timerAlarmWrite(timer0, 1000*1000 * target, true); // in us
+    timerAlarmEnable(timer0);
 
-}
+  }
+
+#endif
 
 void timer0_init(){
     // add an interrupt handler
@@ -242,11 +244,11 @@ void tilt_init(){
   // attachInterrupt(digitalPinToInterrupt(TILT_PIN_R), tilt_isr, (RISING | FALLING) ); // not sure this will work
   // attachInterrupt(digitalPinToInterrupt(TILT_PIN_L), tilt_isr, (RISING | FALLING) ); // not sure this will work
   
-  gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
-  gpio_isr_handler_add(TILT_PIN_B, tilt_isr, (void*) TILT_PIN_B);
-  gpio_isr_handler_add(TILT_PIN_F, tilt_isr, (void*) TILT_PIN_F);
-  gpio_isr_handler_add(TILT_PIN_R, tilt_isr, (void*) TILT_PIN_R);
-  gpio_isr_handler_add(TILT_PIN_L, tilt_isr, (void*) TILT_PIN_L);
+  // gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
+  // gpio_isr_handler_add(TILT_PIN_B, tilt_isr, (void*) TILT_PIN_B);
+  // gpio_isr_handler_add(TILT_PIN_F, tilt_isr, (void*) TILT_PIN_F);
+  // gpio_isr_handler_add(TILT_PIN_R, tilt_isr, (void*) TILT_PIN_R);
+  // gpio_isr_handler_add(TILT_PIN_L, tilt_isr, (void*) TILT_PIN_L);
 
 }
 

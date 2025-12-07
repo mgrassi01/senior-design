@@ -4,7 +4,8 @@
 #include "display.h"
 #include "sensors.hpp"
 #include "feedback.hpp"
-#define BUTTON_PIN 27 //gpio button trigger for sensor test
+#include "pins.hpp"
+
 
 const uint32_t SMS_COOLDOWN_MS = 1UL * 10UL * 1000UL; //10 seconds (changed from 5 minutes)
 uint32_t lastSmsMs = 0;

@@ -32,9 +32,9 @@ const int BUFFER3 = 2;
 
 
 // constant values, can be changed 
-const int VERY_DIM = 1.75
-const int BRIGHT = 1.2
-const int LDR_BUFFER = 0.05 
+const int VERY_DIM = 1.75;
+const int BRIGHT = 1.2;
+const int LDR_BUFFER = 0.05; 
 
 
 #define ESP_INTR_FLAG_DEFAULT 0

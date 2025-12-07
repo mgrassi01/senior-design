@@ -5,7 +5,7 @@
 #include <BackgroundAudio.h> // Use ESP32-AudioI2S or similar
 #include "feedback.hpp"
 #include "sensors.hpp"
-
+#include "pins.hpp"
 
 #ifdef feedback_en
 

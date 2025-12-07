@@ -271,4 +271,5 @@
  /home/marie/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/lwip/lwip/src/include/lwip/ip6_zone.h \
  /home/marie/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/esp_rom/include/esp32/rom/gpio.h \
  /home/marie/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal-timer.h \
- /home/marie/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal-gpio.h
+ /home/marie/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal-gpio.h \
+ include/pins.hpp
