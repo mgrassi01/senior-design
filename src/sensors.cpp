@@ -1,4 +1,5 @@
 #include "sensors.hpp"
+#include "pins.hpp"
 
 
 /*
@@ -250,6 +251,9 @@ void tilt_init(){
 }
 
 void ultrasonic_init() {
+
+  Serial.println("\nWe are not using the Ultrasonics on ESP32. Please connect the arduino. \n");
+  #ifdef esp_ultrasonics
   pinMode(ECHO_PIN_L1, INPUT);
   pinMode(ECHO_PIN_R1, INPUT);
   pinMode(ECHO_PIN_L2, INPUT);
@@ -265,7 +269,7 @@ void ultrasonic_init() {
   digitalWrite(TRIG_PIN_L2, LOW);
   digitalWrite(TRIG_PIN_R2, LOW);
 
-
+  #endif
 }
 
 void ldr_init() {
@@ -277,7 +281,7 @@ void ldr_init() {
 // when the gold lead is tilted DOWN, the circuit closes. 
 void sensors_init() {
 
-  // ldr_init();
+  // ldr_init();s
   // ultrasonic_init();
   // tilt_init();
   // timer0_init();

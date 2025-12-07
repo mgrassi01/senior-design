@@ -1,31 +1,21 @@
 #include <TFT_eSPI.h>
 #include <Arduino.h>
 #include "sensors.hpp"
+#include "pins.hpp"
 TFT_eSPI tft;
 
-// ---------- BUTTON PINS (safe) ----------
-const int BTN1 = 22;
-const int BTN2 = 16;
-const int BTN3 = 17;
-const int BTN4 = 21;
-// ---------- LED OUTPUT PINS ----------
-const int LED_F1 = 25;   // pick any safe GPIOs
-const int LED_F2 = 32;    // (avoid 1/3 UART, 12/13/14/15 boot/SPI)
-const int LED_F3 = 33;
 
 
 // ---------- ADC ----------
-const int POT_PIN = 34;           // ADC1 only
 int adc_min_cal = 0, adc_max_cal = 4095;
 float potFilt = 0.0f;
 const float alpha = 0.15f;
 // ---------- FALL ALERT (GPIO35) ----------
-const int FALL_PIN = 35;                 // goes HIGH when fall is detected
 enum UiState { UI_MAIN, UI_SETTINGS, UI_ALERT };   // add UI_ALERT
 volatile UiState ui = UI_MAIN;           // update your existing declaration
 
 // Cooldown after user acknowledges (10 minutes)
-const uint32_t FALL_COOLDOWN_MS = 10UL * 60UL * 1000UL;
+const uint32_t FALL_COOLDOWN_MS = 1UL * 10UL * 1000UL; // 10 seconds 
 uint32_t fallCooldownUntilMs = 0;
 
 // Simple debounce: require sustained HIGH for this long to trigger
