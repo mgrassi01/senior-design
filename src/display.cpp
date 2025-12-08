@@ -243,10 +243,8 @@ void display_setup(){
   tft.init(); 
 
   tft.setRotation(1); 
-  Serial.println("\ndisplay bp 1");
 
   tft.fillScreen(TFT_BLACK);
-  Serial.println("\ndisplay bp 1.1");
 
 
   // Buttons (unchanged) ...
@@ -256,12 +254,10 @@ void display_setup(){
   attachInterrupt(digitalPinToInterrupt(AUDIO_BTN_PIN), isrAUDIO_BTN_PIN, FALLING);
   attachInterrupt(digitalPinToInterrupt(HAPTICS_BTN_PIN), isrHAPTICS_BTN_PIN, FALLING);
   attachInterrupt(digitalPinToInterrupt(BTN4), isrBtn4, FALLING);
-  Serial.println("\ndisplay bp 2");
 
   // ADC (unchanged) ...
   analogReadResolution(12);
   analogSetPinAttenuation(POT_PIN, ADC_11db);
-  Serial.println("\ndisplay bp 3");
 
   // Timer (unchanged) ...
   uiTimer = timerBegin(0, 80, true);
@@ -362,6 +358,7 @@ void display_loop(){
   }
   // timer-driven ADC & tiny UI updates
   if (tickFlag){
+    // check to see if the timer > 10 seconds, if is, get the current state of the till set the appropriate alert 
     tickFlag = false;
     int pct = readPotPercent();
     if (pct != variable0_100){

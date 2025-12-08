@@ -43,5 +43,7 @@ const int LDR_BUFFER = 0.05;
 #define ULTRASONIC_INPUT_MASK ((1 << ECHO_PIN_L1) | (1 << ECHO_PIN_L2) | (1 << ECHO_PIN_R1) | (1 << ECHO_PIN_R2))
 
 
+// extern volatile int tilt_flags = 0;
 
 void sensors_init();
+void set_tilt_state(const int, int);

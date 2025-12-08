@@ -3,6 +3,7 @@
 // ---------- IF DEFS -----
 
 // #define wifi_en
+// #define esp_ultrasonics
 
 
 
@@ -18,7 +19,7 @@ const int POT_PIN = 34;           // ADC1 only
 
 const int TILT_PIN_L = 39;
 const int TILT_PIN_R = 36;
-const int TILT_PIN_F = 26;
+const int TILT_PIN_F = 12;
 const int TILT_PIN_B = 27;
 
 // # define esp_utrasonics // since we are using the arduino instead
