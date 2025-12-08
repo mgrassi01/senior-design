@@ -6,11 +6,6 @@
 ultrasonic, tilt, and light sensors. 
 */
 
-// ----------------------------------- GLOBAL VARIABLES  --------------------------------//
-int ldr_state = 2; // start out assuming dim, the in-between value
-int ultrasonic_state = 0; 
-volatile int tilt_state = 0;
-hw_timer_t* timer1 = nullptr;           // 50 Hz tick ??
 
 
 int ldr(int);
@@ -28,79 +23,67 @@ void IRAM_ATTR isr_tilt_B();
 void IRAM_ATTR isr_tilt_R();
 void IRAM_ATTR isr_tilt_L();
 
+// ----------------------------------- GLOBAL VARIABLES  --------------------------------//
+int ldr_state = 2; // start out assuming dim, the in-between value
+int ultrasonic_state = 0; 
+volatile int tilt_state = 0; // 3/4 bit val depending on which tilt sensors are enabled
+hw_timer_t* timer1 = nullptr;           // 50 Hz tick ??
+unsigned long tilt_threshold = 1000 * 1000 * 10; // 10 seconds
 volatile uint32_t last_tilt_us[4] = {0,0,0,0};
-const uint32_t tiltdebounceUs = 100;       // 0.1 ms
-portMUX_TYPE tilt_mux = portMUX_INITIALIZER_UNLOCKED;
+const uint32_t tiltdebounceUs = 100;       // 0.1 ms - seems to be better than longer debounces 
+portMUX_TYPE tilt_mux = portMUX_INITIALIZER_UNLOCKED; // copied from display for similar isr
 volatile int tilt_flags = 0;   // bit0..3 set by ISRs
+unsigned long tilt_time = 0; // time at which walker has fallen over and is stable
 
+
+// enum UiState {UI_MAIN, UI_SETTINGS, UI_ALERT};   // add UI_ALERT
+// extern volatile UiState ui = UI_MAIN;           // update your existing declaration
 
 
 void set_tilt_state(const int gpio_num, int idx){
    
-
-  // if that specific tilt flag is high, set it to 0. if its 0, just return
-    // Serial.println("\nentered set_tilt_state");
-  // if (tilt_flag_F == 0) { return; }
-
-  // // Serial.println("\nentered set_tilt_state with flag != 0");
-  // if (tilt_flag_F == 1){
-  //   tilt_flag_F = 0;
-  // }
-
+  // if nothing is going on, just return
   if (((tilt_flags >> idx ) & 1) == 0) return;
-
-  // Serial.println("\nentered set_tilt_state with flag != 0");
   if (((tilt_flags >> idx ) & 1) == 1){
     tilt_flags &= ~(1 << idx);
   }
 
-  delay(10);
-  int level = digitalRead(gpio_num); // tell if its rising or falling
+  delay(10); // we may be able to make this delay shorter but 10 ms seems to work
+  int level = digitalRead(gpio_num); // tell if its rising or falling - necessary
 
   // 4 bit val goes like FRONT | BACK | LEFT | RIGHT
   if(level == HIGH){
     tilt_state |= (1 << idx);
     Serial.println("\n tilt state: ");
     Serial.print(tilt_state);
-
-    // reset the timer and start counting again
+    // reset the timer and start counting again: will count time starting from last debounce
+    tilt_time = millis(); // current time in ms
   }
 
   else if(level == LOW){
     tilt_state &= ~(1 << idx); 
     Serial.println("\n tilt state: ");
     Serial.print(tilt_state);
-    // reset the timer and do not start counting again 
+    // reset the timer and do not start counting again
+    tilt_time = 0; // indicator for timer stopped  
   }
 
 }
 
-// have a timeout so that if the tilt isr gets called, run everything
-// start a timeout. while the timeout is high, it will not be able to get called again
-// once the timeout expires, it sets a flag that allowes the isr to be called again
-// can do it either by disabling the interrupt as a whole or once in the isr. 
-// int timeout_tilt_left  = 100;
-// int timeout_tilt_right = 100;
-// int timeout_tilt_front  = 10;
-// int timeout_tilt_back = 100;
+
 
 void IRAM_ATTR tilt_isr(int idx){
   uint32_t now=micros();
   if (now - last_tilt_us[idx] < tiltdebounceUs) return;
-  // Serial.println("made it to tilt_isr past debounce");
   last_tilt_us[idx]=now;
   portENTER_CRITICAL_ISR(&tilt_mux);
-  // tilt_flag_F = 1;
   tilt_flags |= (1<<idx); // sets the flag high 
   portEXIT_CRITICAL_ISR(&tilt_mux);
 }
 
 void IRAM_ATTR isr_tilt_F(){
-  // Serial.println("left tilt detected");
   tilt_isr(3);
 }
-
-
 void IRAM_ATTR isr_tilt_B(){
   tilt_isr(2);
 }
@@ -270,8 +253,6 @@ void sensors_timer_init(){
     // add an interrupt handler
     // make the ultrasonic_ldr_isr the interrupt handler
     // set the alarm for 1 or 5 seconds
-
-    //timer1 = timerBegin(0, 80, true); 
     timer1 = timerBegin(1, 80, true);// guessing this brings it down to 1 us?
     timerAttachInterrupt(timer1, &ultrasonic_ldr_isr, true);
     timerAlarmWrite(timer1, 1000*1000, true);
@@ -286,7 +267,7 @@ void tilt_init(){
   pinMode(TILT_PIN_L, INPUT);
   pinMode(TILT_PIN_R, INPUT);
 
-  attachInterrupt(digitalPinToInterrupt(TILT_PIN_F), isr_tilt_F, CHANGE); // not sure this will work
+  attachInterrupt(digitalPinToInterrupt(TILT_PIN_F), isr_tilt_F, CHANGE); // needs to be change 
   // attachInterrupt(digitalPinToInterrupt(TILT_PIN_B), isr_tilt_B, CHANGE); // not sure this will work
   // attachInterrupt(digitalPinToInterrupt(TILT_PIN_L), isr_tilt_L, CHANGE); // not sure this will work
   // attachInterrupt(digitalPinToInterrupt(TILT_PIN_R), isr_tilt_R, CHANGE); // not sure this will work
@@ -297,7 +278,9 @@ void tilt_init(){
 void ultrasonic_init() {
   #ifndef esp_ultrasonics
   Serial.println("\nWe are not using the Ultrasonics on ESP32. Please connect the arduino. \n");
+  pinMode(ULTRASONIC_PIN, ANALOG);
   #endif
+  
   #ifdef esp_ultrasonics
   pinMode(ECHO_PIN_L1, INPUT);
   pinMode(ECHO_PIN_R1, INPUT);
@@ -324,14 +307,28 @@ void ldr_init() {
 
 
 // when the gold lead is tilted DOWN, the circuit closes. 
+// put the gold lead facing upwards and connec that to the input pin
+// connect the silver lead to Vcc
 void sensors_init() {
-
-  // ldr_init();
+  // ldr_init(); // dont need this if doing it the analog way 
   ultrasonic_init();
-  tilt_init(); // this appears to be causing the micro to reset 
-  
-
+  tilt_init();  
   // sensors_timer_init(); // this appears to be causing sthe micro to reset
-  
+}
+
+int  check_tilt_time(){
+  // if the timer has not been set to 0 (indicating off) 
+  // and the time the walker has been tipped is greater than 10 seconds
+  // then set the ui to UI_ALERT state 
+  int alert = UI_MAIN;// will have to change based on settings
+
+  // for some reason this isnt registering the time
+  if((tilt_time > 0) && ((tilt_time - millis()) > tilt_threshold)) {
+    if( tilt_state!=0){
+      alert = UI_ALERT;
+      Serial.println("\nwalker has tipped over");
+    }
+  }
+  return(alert);
 
 }

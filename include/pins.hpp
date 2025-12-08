@@ -5,7 +5,16 @@
 // #define wifi_en
 // #define esp_ultrasonics
 
+// ---------- EXTERNS ----------
+enum UiState {UI_MAIN, UI_SETTINGS, UI_ALERT};   // add UI_ALERT
+extern volatile int tilt_state;
+extern int ultrasonic_state;
 
+
+// for the feedback functions that can be turned on and off by pushbuttons
+// extern volatile bool audio = true;
+// extern volatile bool haptics = true;
+// extern volatile bool lights = true;
 
 
 
@@ -35,7 +44,9 @@ const int TILT_PIN_B = 27;
     const int ECHO_PIN_R2 =  17;
 
 #endif
-
+#ifndef esp_ultrasonics
+    const int ULTRASONIC_PIN = -1 // change later
+#endif
 
 
 // ---------- USER INTERFACE / DISPLAY ----------

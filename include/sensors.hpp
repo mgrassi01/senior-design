@@ -16,13 +16,8 @@
 #include "esp_timer.h"
 #include "esp32-hal-gpio.h"
 
-// 
 
 
-extern volatile int tilt_state;
-extern int ultrasonic_state;
-
-// some of these might need to change later, i dont think any of them overlap
 
 const int BUFFER1 = 2;
 const int BUFFER2 = 2;
@@ -43,7 +38,7 @@ const int LDR_BUFFER = 0.05;
 #define ULTRASONIC_INPUT_MASK ((1 << ECHO_PIN_L1) | (1 << ECHO_PIN_L2) | (1 << ECHO_PIN_R1) | (1 << ECHO_PIN_R2))
 
 
-// extern volatile int tilt_flags = 0;
 
-void sensors_init();
-void set_tilt_state(const int, int);
+void sensors_init(); // initilizes the tilt sensors and ultrasonic ADC pin 
+void set_tilt_state(const int, int); // gets the current 4 bit value of tilt
+int check_tilt_time(); // sees if the walker has fallen over long enough to consider it a valid fall, returns the state 

@@ -118,11 +118,15 @@ void loop() {
     prevAlert = nowAlert;
 
     // maybe goes first? 
+
     // set_tilt_state(TILT_PIN_R, 0);
     // set_tilt_state(TILT_PIN_L, 1);
     // set_tilt_state(TILT_PIN_B, 2);
     set_tilt_state(TILT_PIN_F, 3);
+    
+    nowAlert = check_tilt_time();
 
+ 
 
     delay(10);
 }

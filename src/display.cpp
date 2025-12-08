@@ -7,12 +7,13 @@ TFT_eSPI tft;
 
 
 
+
 // ---------- ADC ----------
 int adc_min_cal = 0, adc_max_cal = 4095;
 float potFilt = 0.0f;
 const float alpha = 0.15f;
 // ---------- FALL ALERT (GPIO35) ----------
-enum UiState { UI_MAIN, UI_SETTINGS, UI_ALERT };   // add UI_ALERT
+// enum UiState { UI_MAIN, UI_SETTINGS, UI_ALERT };   // add UI_ALERT
 volatile UiState ui = UI_MAIN;           // update your existing declaration
 
 // Cooldown after user acknowledges (10 minutes)
@@ -358,8 +359,12 @@ void display_loop(){
   }
   // timer-driven ADC & tiny UI updates
   if (tickFlag){
+
     // check to see if the timer > 10 seconds, if is, get the current state of the till set the appropriate alert 
     tickFlag = false;
+
+
+
     int pct = readPotPercent();
     if (pct != variable0_100){
       variable0_100 = pct;
@@ -377,3 +382,5 @@ void display_loop(){
 bool display_in_alert(){
   return (ui == UI_ALERT);
 } 
+
+
