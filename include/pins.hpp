@@ -1,3 +1,11 @@
+// ----- DO NOT USE PINS 1 or 3 FOR ANYTHING IF YOU WANT SERIAL PRINT STATEMENTS!!!
+
+// ---------- IF DEFS -----
+
+// #define wifi_en
+
+
+
 
 
 // ---------- SENSORS ----------
@@ -33,22 +41,22 @@ const int TILT_PIN_B = 27;
 #define BUTTON_PIN 27 //gpio button trigger for sensor test
 
 // ---------- BUTTON PINS (safe) ----------
-const int BTN1 = 22;
-const int BTN2 = 1; // 16; // 1 (on senior design display)
-const int BTN3 = 3; // 17; // 3 (on senior design display)
-const int BTN4 = 21;
+const int LIGHTS_BTN_PIN = 22; // F1
+const int HAPTICS_BTN_PIN = 21; // 16 originally SPEAKER 
+const int AUDIO_BTN_PIN = 17; // AUDIO
+const int BTN4 = 16; // 21 originally. not working for some reason, supposed to be main uI
 
 // ---------- LED OUTPUT PINS ----------
-const int LED_F1 = 25;   // pick any safe GPIOs
-const int LED_F2 = 32;    // (avoid 1/3 UART, 12/13/14/15 boot/SPI)
-const int LED_F3 = 33;
+// const int LED_F1 = 25;   // pick any safe GPIOs
+// const int LED_F2 = 32;    // (avoid 1/3 UART, 12/13/14/15 boot/SPI)
+// const int LED_audio = 33;
 
 
 // --------- FEEDBACK ---------
 
-const int GREEN_LED_GPIO = 25; // 1 is taken by BTN2 so change this, corresponts to LED_f1
+const int GREEN_LED_GPIO = 25; // 1 is taken by SPEAKER_BTN_PIN so change this, corresponts to LED_f1
 const int YELLOW_LED_GPIO = 32; // correspongs to LED_F2
-const int RED_LED_GPIO = 33; // 3 is taken by BTN3, 33 corresponds to LEDF3
+const int RED_LED_GPIO = 33; // 3 is taken by AUDIO_BTN_PIN, 33 corresponds to LEDaudio
 
 const int HEADLIGHT_GPIO = -1; //26; // 26 is TILT_PIN_F, change this
 

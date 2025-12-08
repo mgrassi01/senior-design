@@ -265,7 +265,7 @@ void sensors_init() {
 
   // ldr_init();
   ultrasonic_init();
-  // tilt_init();
+  tilt_init();
   // timer0_init();
 
 }

@@ -29,7 +29,7 @@ volatile int variable0_100 = 100;
 uint16_t lastBorderColor = 0;
 
 // toggles
-volatile bool f1On = false, f2On = false, f3On = false;
+volatile bool lightsOn = false, audioOn = false, hapticsOn = false;
 
 // ---------- Interrupt flags / debounce ----------
 volatile uint32_t buttonEdgeFlags = 0;   // bit0..3 set by ISRs
@@ -44,7 +44,7 @@ hw_timer_t* uiTimer = nullptr;           // 50 Hz tick
 
 // ---------- Geometry cache for partial redraws ----------
 struct Rect { int x,y,w,h; };
-Rect gF1, gF2, gF3, gMain;
+Rect gF1, gAUDIO, gHAPTICS, gMain;
 
 // ---------- Colors ----------
 uint16_t rgb888_to_565(uint8_t r, uint8_t g, uint8_t b) {
@@ -58,6 +58,7 @@ uint16_t hsv_to_565(float h, float s, float v) {
   else if(h<300){r=x;b=c;} else {r=c;b=x;}
   return rgb888_to_565((uint8_t)((r+m)*255),(uint8_t)((g+m)*255),(uint8_t)((b+m)*255));
 }
+
 uint16_t borderColorFromVariable(int v) {
   v = constrain(v,0,100);
   return hsv_to_565(120.0f*(v/100.0f),1.0f,1.0f); // red->green
@@ -85,15 +86,15 @@ void drawButton(int x, int y, int w, int h, const char* label, uint16_t outline,
 }
 
 void drawToggleButton(int x, int y, int w, int h, const char* label, bool on) {
-  uint16_t fill = on ? TFT_GREEN : TFT_RED;
+  uint16_t fill = on ? TFT_DARKGREEN : TFT_RED;
   tft.fillRoundRect(x, y, w, h, 6, fill);
-  tft.drawRoundRect(x, y, w, h, 6, TFT_YELLOW);
+  tft.drawRoundRect(x, y, w, h, 6, TFT_LIGHTGREY); // yellow -> grey
 
   const int fontNum = 4;  // Bolder text
   const int yNudge  = 3;  // Center correction
 
   tft.setTextDatum(MC_DATUM);
-  tft.setTextColor(TFT_BLACK, fill);
+  tft.setTextColor(TFT_WHITE, fill); // black -> white
   String s = String(label) + (on ? " ON" : " OFF");
   tft.drawString(s, x + w / 2, y + h / 2 + yNudge, fontNum);
 }
@@ -160,7 +161,7 @@ void renderSettingsOnce() {
   const int contentW = innerW - 2 * pad;
   const int contentH = innerH - topStripH - gapTop - pad; // leave bottom pad
 
-  // 2 columns x 2 rows grid (F1,F2 on row1; F3, Main UI on row2)
+  // 2 columns x 2 rows grid (F1,AUDIO on row1; HAPTICS, Main UI on row2)
   const int cols = 2;
   const int rows = 2;
   const int colGap = pad;
@@ -178,14 +179,14 @@ void renderSettingsOnce() {
 
   // cache rects
   gF1   = { x1, y1, colW, rowH };
-  gF2   = { x2, y1, colW, rowH };
-  gF3   = { x1, y2, colW, rowH };
+  gAUDIO   = { x2, y1, colW, rowH };
+  gHAPTICS   = { x1, y2, colW, rowH };
   gMain = { x2, y2, colW, rowH };
 
   // draw buttons (uses your centered text with y-nudge inside draw* functions)
-  drawToggleButton(gF1.x, gF1.y, gF1.w, gF1.h, "F1", f1On);
-  drawToggleButton(gF2.x, gF2.y, gF2.w, gF2.h, "F2", f2On);
-  drawToggleButton(gF3.x, gF3.y, gF3.w, gF3.h, "F3", f3On);
+  drawToggleButton(gF1.x, gF1.y, gF1.w, gF1.h, "LIGHTS ", lightsOn);
+  drawToggleButton(gAUDIO.x, gAUDIO.y, gAUDIO.w, gAUDIO.h, "AUDIO ", audioOn);
+  drawToggleButton(gHAPTICS.x, gHAPTICS.y, gHAPTICS.w, gHAPTICS.h, "HAPTICS ", hapticsOn);
   drawButton      (gMain.x, gMain.y, gMain.w, gMain.h, "Main UI", TFT_WHITE, TFT_DARKGREY);
 
   // battery strip (drawn last, stays under the border and above buttons)
@@ -194,14 +195,18 @@ void renderSettingsOnce() {
 
 
 // ---------- Partial redraw helpers (no whole-screen clears) ----------
-void updateToggleF1(){ drawToggleButton(gF1.x,gF1.y,gF1.w,gF1.h,"F1",f1On); }
-void updateToggleF2(){ drawToggleButton(gF2.x,gF2.y,gF2.w,gF2.h,"F2",f2On); }
-void updateToggleF3(){ drawToggleButton(gF3.x,gF3.y,gF3.w,gF3.h,"F3",f3On); }
+void updateToggleF1(){ drawToggleButton(gF1.x,gF1.y,gF1.w,gF1.h,"LIGHTS ",lightsOn); }
+void updateToggleAUDIO(){ drawToggleButton(gAUDIO.x,gAUDIO.y,gAUDIO.w,gAUDIO.h,"AUDIO ",audioOn); }
+void updateToggleHAPTICS(){ drawToggleButton(gHAPTICS.x,gHAPTICS.y,gHAPTICS.w,gHAPTICS.h,"HAPTICS ",hapticsOn); }
 
 void applyOutputs() {
-  digitalWrite(LED_F1, f1On ? HIGH : LOW);
-  digitalWrite(LED_F2, f2On ? HIGH : LOW);
-  digitalWrite(LED_F3, f3On ? HIGH : LOW);
+  // Serial.println(lightsOn ? "F1 is on": "F1 is off");
+  // Serial.println(audioOn ? "AUDIO is on": "AUDIO is off");
+  // Serial.println(hapticsOn ? "HAPTICS is on": "HAPTICS is off");
+
+  // digitalWrite(LED_F1, lightsOn ? HIGH : LOW);
+  // digitalWrite(LED_AUDIO, audioOn ? HIGH : LOW);
+  // digitalWrite(LED_HAPTICS, hapticsOn ? HIGH : LOW);
 }
 
 
@@ -216,9 +221,9 @@ void IRAM_ATTR handleBtnISR(int idx){
   buttonEdgeFlags |= (1u<<idx);
   portEXIT_CRITICAL_ISR(&mux);
 }
-void IRAM_ATTR isrBtn1(){ handleBtnISR(0); }
-void IRAM_ATTR isrBtn2(){ handleBtnISR(1); }
-void IRAM_ATTR isrBtn3(){ handleBtnISR(2); }
+void IRAM_ATTR isrLIGHTS_BTN_PIN(){ handleBtnISR(0); }
+void IRAM_ATTR isrAUDIO_BTN_PIN(){ handleBtnISR(1); }
+void IRAM_ATTR isrHAPTICS_BTN_PIN(){ handleBtnISR(2); }
 void IRAM_ATTR isrBtn4(){ handleBtnISR(3); }
 
 void IRAM_ATTR onTick(){ tickFlag = true; } // timer ISR only sets a flag
@@ -245,11 +250,11 @@ void display_setup(){
 
 
   // Buttons (unchanged) ...
-  pinMode(BTN1, INPUT_PULLUP); pinMode(BTN2, INPUT_PULLUP);
-  pinMode(BTN3, INPUT_PULLUP); pinMode(BTN4, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(BTN1), isrBtn1, FALLING);
-  attachInterrupt(digitalPinToInterrupt(BTN2), isrBtn2, FALLING);
-  attachInterrupt(digitalPinToInterrupt(BTN3), isrBtn3, FALLING);
+  pinMode(LIGHTS_BTN_PIN, INPUT_PULLUP); pinMode(AUDIO_BTN_PIN, INPUT_PULLUP);
+  pinMode(HAPTICS_BTN_PIN, INPUT_PULLUP); pinMode(BTN4, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(LIGHTS_BTN_PIN), isrLIGHTS_BTN_PIN, FALLING);
+  attachInterrupt(digitalPinToInterrupt(AUDIO_BTN_PIN), isrAUDIO_BTN_PIN, FALLING);
+  attachInterrupt(digitalPinToInterrupt(HAPTICS_BTN_PIN), isrHAPTICS_BTN_PIN, FALLING);
   attachInterrupt(digitalPinToInterrupt(BTN4), isrBtn4, FALLING);
   Serial.println("\ndisplay bp 2");
 
@@ -266,10 +271,11 @@ void display_setup(){
 
   // ---- NEW: LED outputs ----
   pinMode(FALL_PIN, INPUT);  // use INPUT; add external pulldown if needed
-  pinMode(LED_F1, OUTPUT);
-  pinMode(LED_F2, OUTPUT);
-  pinMode(LED_F3, OUTPUT);
-  applyOutputs();                 // reflect initial f1On/f2On/f3On (all off now)
+  // commented out bc we are using those LEDs for different functions
+  // pinMode(LED_F1, OUTPUT);
+  // pinMode(LED_AUDIO, OUTPUT);
+  // pinMode(LED_HAPTICS, OUTPUT);
+  applyOutputs();                 // reflect initial lightsOn/audioOn/hapticsOn (all off now)
 
   // initial UI
   variable0_100 = readPotPercent();
@@ -322,9 +328,9 @@ void display_loop(){
     }
   
   if (edges) {
-    if ((edges & (1u<<0)) && digitalRead(BTN1)==LOW) { /* ok */ }
-    if ((edges & (1u<<1)) && digitalRead(BTN2)==LOW) { /* ok */ }
-    if ((edges & (1u<<2)) && digitalRead(BTN3)==LOW) { /* ok */ }
+    if ((edges & (1u<<0)) && digitalRead(LIGHTS_BTN_PIN)==LOW) { /* ok */ }
+    if ((edges & (1u<<1)) && digitalRead(AUDIO_BTN_PIN)==LOW) { /* ok */ }
+    if ((edges & (1u<<2)) && digitalRead(HAPTICS_BTN_PIN)==LOW) { /* ok */ }
     if ((edges & (1u<<3)) && digitalRead(BTN4)==LOW) { /* ok */ }
     // --- NEW: handle alert acknowledgement first ---
     if (ui == UI_ALERT) {
@@ -344,9 +350,9 @@ void display_loop(){
         }
       }
     else if (ui == UI_SETTINGS) {
-      if (edges & (1u<<0)) { f1On = !f1On; applyOutputs(); updateToggleF1(); }
-      if (edges & (1u<<1)) { f2On = !f2On; applyOutputs(); updateToggleF2(); }
-      if (edges & (1u<<2)) { f3On = !f3On; applyOutputs(); updateToggleF3(); }
+      if (edges & (1u<<0)) { lightsOn = !lightsOn; applyOutputs(); updateToggleF1(); }
+      if (edges & (1u<<1)) { audioOn = !audioOn; applyOutputs(); updateToggleAUDIO(); }
+      if (edges & (1u<<2)) { hapticsOn = !hapticsOn; applyOutputs(); updateToggleHAPTICS(); }
       if ((edges & (1u<<3)) && (nowMs - lastUiChangeMs >= uiCooldownMs)) {
         lastUiChangeMs = nowMs;
         ui = UI_MAIN;

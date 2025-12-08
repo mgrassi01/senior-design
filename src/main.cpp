@@ -34,11 +34,12 @@ void sendIFTTT(String msg){
        
 }
 
+
 void setup(){
     //pinMode(BUTTON_PIN, INPUT_PULLUP);
     Serial.begin(115200);
     
-
+#ifdef wifi_en
     //connect wifi
     // Serial.print("ssid=");
     // Serial.print(WIFI_SSID);
@@ -49,7 +50,7 @@ void setup(){
         Serial.println(".");
     }
     Serial.println("\nWi-Fi connected!");
-
+#endif
 
     display_setup();
     Serial.println("\ndisplay has been setup");
@@ -101,7 +102,9 @@ void loop() {
         Serial.println("Entered ALERT State");
         if(now - lastSmsMs > SMS_COOLDOWN_MS){
             Serial.println("Sending SMS via IFTTT...");
+            #ifdef wifi_en
             sendIFTTT("Walker has fallen");
+            #endif
             lastSmsMs = now;
         } else{
             Serial.println("SMS supressed (software cooldown)");
