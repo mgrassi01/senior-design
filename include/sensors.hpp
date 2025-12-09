@@ -17,6 +17,12 @@
 #include "esp32-hal-gpio.h"
 
 
+#define ESP_INTR_FLAG_DEFAULT 0
+
+// #define ULTRASONIC_OUTPUT_MASK ((1 << TRIG_PIN_L1) | (1 << TRIG_PIN_L2) | (1 << TRIG_PIN_R1) | (1 << TRIG_PIN_R2))
+// #define ULTRASONIC_INPUT_MASK ((1 << ECHO_PIN_L1) | (1 << ECHO_PIN_L2) | (1 << ECHO_PIN_R1) | (1 << ECHO_PIN_R2))
+
+
 const int BUFFER1 = 2;
 const int BUFFER2 = 2;
 const int BUFFER3 = 2;
@@ -27,13 +33,6 @@ enum UltrasonicState {FAR, RIGHT_MIDDLE, RIGHT_CLOSE, LEFT_MIDDLE, LEFT_CLOSE, C
 const int VERY_DIM = 1.75;
 const int BRIGHT = 1.2;
 const int LDR_BUFFER = 0.05; 
-
-
-#define ESP_INTR_FLAG_DEFAULT 0
-
-#define ULTRASONIC_OUTPUT_MASK ((1 << TRIG_PIN_L1) | (1 << TRIG_PIN_L2) | (1 << TRIG_PIN_R1) | (1 << TRIG_PIN_R2))
-#define ULTRASONIC_INPUT_MASK ((1 << ECHO_PIN_L1) | (1 << ECHO_PIN_L2) | (1 << ECHO_PIN_R1) | (1 << ECHO_PIN_R2))
-
 
 
 void sensors_init(); // initilizes the tilt sensors and ultrasonic ADC pin 

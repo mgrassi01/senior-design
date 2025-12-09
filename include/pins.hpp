@@ -10,9 +10,7 @@ enum UiState {UI_MAIN, UI_SETTINGS, UI_ALERT};   // add UI_ALERT
 
 extern enum UltrasonicState ultrasonic_state;
 
-
 extern volatile int tilt_state;
-// extern volatile int ultrasonic_state;
 
 
 // for the feedback functions that can be turned on and off by pushbuttons

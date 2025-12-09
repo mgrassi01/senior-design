@@ -38,6 +38,41 @@ unsigned long tilt_time = 0; // time at which walker has fallen over and is stab
 // enum UiState {UI_MAIN, UI_SETTINGS, UI_ALERT};   // add UI_ALERT
 // extern volatile UiState ui = UI_MAIN;           // update your existing declaration
 
+void sensors_timer_init(){
+    // add an interrupt handler
+    // make the ultrasonic_ldr_isr the interrupt handler
+    // set the alarm for 1 or 5 seconds
+    timer1 = timerBegin(1, 80, true);// guessing this brings it down to 1 us?
+    timerAttachInterrupt(timer1, &ultrasonic_ldr_isr, true);
+    timerAlarmWrite(timer1, 1000*1000, true);
+    timerAlarmEnable(timer1);
+}
+
+void sensors_init() {
+  // ldr_init(); // dont need this if doing it the analog way 
+  ultrasonic_init();
+  tilt_init();  
+  // sensors_timer_init(); // this appears to be causing sthe micro to reset
+}
+
+// ----------------------------------- TILT SENSOR FUNCTIONS  --------------------------------//
+// when the gold lead is tilted DOWN, the circuit closes. 
+// put the gold lead facing upwards and connec that to the input pin
+// connect the silver lead to Vcc
+
+void tilt_init(){
+  pinMode(TILT_PIN_B, INPUT);
+  pinMode(TILT_PIN_F, INPUT);
+  pinMode(TILT_PIN_L, INPUT);
+  pinMode(TILT_PIN_R, INPUT);
+
+  attachInterrupt(digitalPinToInterrupt(TILT_PIN_F), isr_tilt_F, CHANGE); // needs to be change 
+  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_B), isr_tilt_B, CHANGE); // not sure this will work
+  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_L), isr_tilt_L, CHANGE); // not sure this will work
+  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_R), isr_tilt_R, CHANGE); // not sure this will work
+
+}
+
 
 void set_tilt_state(const int gpio_num, int idx){
    
@@ -70,7 +105,6 @@ void set_tilt_state(const int gpio_num, int idx){
 }
 
 
-
 void IRAM_ATTR tilt_isr(int idx){
   uint32_t now=micros();
   if (now - last_tilt_us[idx] < tiltdebounceUs) return;
@@ -79,6 +113,7 @@ void IRAM_ATTR tilt_isr(int idx){
   tilt_flags |= (1<<idx); // sets the flag high 
   portEXIT_CRITICAL_ISR(&tilt_mux);
 }
+
 
 void IRAM_ATTR isr_tilt_F(){
   tilt_isr(3);
@@ -94,8 +129,32 @@ void IRAM_ATTR isr_tilt_R(){
 }
 
 
+int check_tilt_time(){
+  // if the timer has not been set to 0 (indicating off) 
+  // and the time the walker has been tipped is greater than 10 seconds
+  // then set the ui to UI_ALERT state 
+  int alert = UI_MAIN;// will have to change based on settings
 
-// this is timer triggered and will run after the ultrasonics, in a similar way
+  // for some reason this isnt registering the time
+  if((tilt_time > 0) && ((millis() - tilt_time ) > tilt_threshold)) {
+    if( tilt_state!=0){
+      alert = UI_ALERT;
+      Serial.println("\nwalker has tipped over");
+      tilt_time = 0; // turn off the timer so it doesnt keep sending the message 
+    }
+  }
+  return(alert);
+
+}
+
+
+// ----------------------------------- LIGHT SENSOR FUNCTIONS  --------------------------------//
+
+void ldr_init() {
+  pinMode(LDR_PIN1, INPUT);
+  pinMode(LDR_PIN2, INPUT);
+}
+
 int ldr(int pin_num)
 {
   int ldr_value = 0; // value read from the ldr
@@ -141,6 +200,36 @@ int ldr(int pin_num)
 }
 
 
+// ----------------------------------- ULTRASONIC SENSOR FUNCTIONS  --------------------------------//
+
+void ultrasonic_init() {
+  #ifndef esp_ultrasonics
+  Serial.println("\nWe are not using the Ultrasonics on ESP32. Please connect the arduino. \n");
+  pinMode(ULTRASONIC_PIN, ANALOG);
+  #endif
+  
+  #ifdef esp_ultrasonics
+  pinMode(ECHO_PIN_L1, INPUT);
+  pinMode(ECHO_PIN_R1, INPUT);
+  pinMode(ECHO_PIN_L2, INPUT);
+  pinMode(ECHO_PIN_R2, INPUT);
+
+  pinMode(TRIG_PIN_L1, OUTPUT);
+  pinMode(TRIG_PIN_R1, OUTPUT);
+  pinMode(TRIG_PIN_L2, OUTPUT);
+  pinMode(TRIG_PIN_R2, OUTPUT);
+
+  digitalWrite(TRIG_PIN_L1, LOW);
+  digitalWrite(TRIG_PIN_R1, LOW);
+  digitalWrite(TRIG_PIN_L2, LOW);
+  digitalWrite(TRIG_PIN_R2, LOW);
+
+  #endif
+}
+
+int get_ultrasonic_state(){
+  return ultrasonic_state;
+}
 
 #ifdef esp_ultrasonics
 
@@ -247,89 +336,3 @@ int ultrasonic(int TRIG_PIN, int ECHO_PIN){
   }
 
   #endif
-
-
-void sensors_timer_init(){
-    // add an interrupt handler
-    // make the ultrasonic_ldr_isr the interrupt handler
-    // set the alarm for 1 or 5 seconds
-    timer1 = timerBegin(1, 80, true);// guessing this brings it down to 1 us?
-    timerAttachInterrupt(timer1, &ultrasonic_ldr_isr, true);
-    timerAlarmWrite(timer1, 1000*1000, true);
-    timerAlarmEnable(timer1);
-
-}
-
-
-void tilt_init(){
-  pinMode(TILT_PIN_B, INPUT);
-  pinMode(TILT_PIN_F, INPUT);
-  pinMode(TILT_PIN_L, INPUT);
-  pinMode(TILT_PIN_R, INPUT);
-
-  attachInterrupt(digitalPinToInterrupt(TILT_PIN_F), isr_tilt_F, CHANGE); // needs to be change 
-  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_B), isr_tilt_B, CHANGE); // not sure this will work
-  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_L), isr_tilt_L, CHANGE); // not sure this will work
-  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_R), isr_tilt_R, CHANGE); // not sure this will work
-
-
-}
-
-void ultrasonic_init() {
-  #ifndef esp_ultrasonics
-  Serial.println("\nWe are not using the Ultrasonics on ESP32. Please connect the arduino. \n");
-  pinMode(ULTRASONIC_PIN, ANALOG);
-  #endif
-  
-  #ifdef esp_ultrasonics
-  pinMode(ECHO_PIN_L1, INPUT);
-  pinMode(ECHO_PIN_R1, INPUT);
-  pinMode(ECHO_PIN_L2, INPUT);
-  pinMode(ECHO_PIN_R2, INPUT);
-
-  pinMode(TRIG_PIN_L1, OUTPUT);
-  pinMode(TRIG_PIN_R1, OUTPUT);
-  pinMode(TRIG_PIN_L2, OUTPUT);
-  pinMode(TRIG_PIN_R2, OUTPUT);
-
-  digitalWrite(TRIG_PIN_L1, LOW);
-  digitalWrite(TRIG_PIN_R1, LOW);
-  digitalWrite(TRIG_PIN_L2, LOW);
-  digitalWrite(TRIG_PIN_R2, LOW);
-
-  #endif
-}
-
-void ldr_init() {
-  pinMode(LDR_PIN1, INPUT);
-  pinMode(LDR_PIN2, INPUT);
-}
-
-
-// when the gold lead is tilted DOWN, the circuit closes. 
-// put the gold lead facing upwards and connec that to the input pin
-// connect the silver lead to Vcc
-void sensors_init() {
-  // ldr_init(); // dont need this if doing it the analog way 
-  ultrasonic_init();
-  tilt_init();  
-  // sensors_timer_init(); // this appears to be causing sthe micro to reset
-}
-
-int check_tilt_time(){
-  // if the timer has not been set to 0 (indicating off) 
-  // and the time the walker has been tipped is greater than 10 seconds
-  // then set the ui to UI_ALERT state 
-  int alert = UI_MAIN;// will have to change based on settings
-
-  // for some reason this isnt registering the time
-  if((tilt_time > 0) && ((millis() - tilt_time ) > tilt_threshold)) {
-    if( tilt_state!=0){
-      alert = UI_ALERT;
-      Serial.println("\nwalker has tipped over");
-      tilt_time = 0; // turn off the timer so it doesnt keep sending the message 
-    }
-  }
-  return(alert);
-
-}
