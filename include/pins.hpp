@@ -7,14 +7,18 @@
 
 // ---------- EXTERNS ----------
 enum UiState {UI_MAIN, UI_SETTINGS, UI_ALERT};   // add UI_ALERT
+
+extern enum UltrasonicState ultrasonic_state;
+
+
 extern volatile int tilt_state;
-extern int ultrasonic_state;
+// extern volatile int ultrasonic_state;
 
 
 // for the feedback functions that can be turned on and off by pushbuttons
-// extern volatile bool audio = true;
-// extern volatile bool haptics = true;
-// extern volatile bool lights = true;
+extern volatile bool audio ;
+extern volatile bool haptics;
+extern volatile bool lights ;
 
 
 
@@ -45,12 +49,12 @@ const int TILT_PIN_B = 27;
 
 #endif
 #ifndef esp_ultrasonics
-    const int ULTRASONIC_PIN = -1 // change later
+    const int ULTRASONIC_PIN = -1; // change later
 #endif
 
 
 // ---------- USER INTERFACE / DISPLAY ----------
-#define BUTTON_PIN 27 //gpio button trigger for sensor test
+#define BUTTON_PIN 27; //gpio button trigger for sensor test
 
 // ---------- BUTTON PINS (safe) ----------
 const int LIGHTS_BTN_PIN = 22; // F1
@@ -70,7 +74,8 @@ const int GREEN_LED_GPIO = 25; // 1 is taken by SPEAKER_BTN_PIN so change this, 
 const int YELLOW_LED_GPIO = 32; // correspongs to LED_F2
 const int RED_LED_GPIO = 33; // 3 is taken by AUDIO_BTN_PIN, 33 corresponds to LEDaudio
 
-const int HEADLIGHT_GPIO = -1; //26; // 26 is TILT_PIN_F, change this
+const int HEADLIGHT_GPIO_LEFT = -1; //26; // 26 is TILT_PIN_F, change this
+const int HEADLIGHT_GPIO_RIGHT = -1; 
 
 // Define Haptic pin numbers
 const int HAPTIC_L_GPIO = -1; // 14; // 14 is LDR_PIN2-change this

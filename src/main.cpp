@@ -6,6 +6,18 @@
 #include "feedback.hpp"
 #include "pins.hpp"
 
+// ---------- EXTERNS (declared in pin.hpp) ---------- //
+volatile int       tilt_state;
+enum UltrasonicState ultrasonic_state = FAR;
+
+
+// for the feedback functions that can be turned on and off by pushbuttons
+volatile bool audio   = true;
+volatile bool haptics = true;
+volatile bool lights  = true;
+
+
+
 
 const uint32_t SMS_COOLDOWN_MS = 1UL * 10UL * 1000UL; //10 seconds (changed from 5 minutes)
 uint32_t lastSmsMs = 0;

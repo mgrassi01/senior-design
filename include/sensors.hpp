@@ -17,14 +17,11 @@
 #include "esp32-hal-gpio.h"
 
 
-
-
 const int BUFFER1 = 2;
 const int BUFFER2 = 2;
 const int BUFFER3 = 2;
 
-
-
+enum UltrasonicState {FAR, RIGHT_MIDDLE, RIGHT_CLOSE, LEFT_MIDDLE, LEFT_CLOSE, CENTER_MIDDLE, CENTER_CLOSE};
 
 // constant values, can be changed 
 const int VERY_DIM = 1.75;
