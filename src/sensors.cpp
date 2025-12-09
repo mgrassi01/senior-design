@@ -205,7 +205,7 @@ int ldr(int pin_num)
 void ultrasonic_init() {
   #ifndef esp_ultrasonics
   Serial.println("\nWe are not using the Ultrasonics on ESP32. Please connect the arduino. \n");
-  pinMode(ULTRASONIC_PIN, ANALOG);
+  //pinMode(ULTRASONIC_PIN, ANALOG);
   #endif
   
   #ifdef esp_ultrasonics

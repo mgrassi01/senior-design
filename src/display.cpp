@@ -15,7 +15,9 @@ const float alpha = 0.15f;
 // ---------- FALL ALERT (GPIO35) ----------
 // enum UiState { UI_MAIN, UI_SETTINGS, UI_ALERT };   // add UI_ALERT
 volatile UiState ui = UI_MAIN;           // update your existing declaration
-
+//cancel button 
+static uint32_t alertStartTimeMs = 0;
+static bool cancelButtonPressed = false;
 // Cooldown after user acknowledges (10 minutes)
 const uint32_t FALL_COOLDOWN_MS = 1UL * 10UL * 1000UL; // 10 seconds 
 uint32_t fallCooldownUntilMs = 0;
@@ -28,6 +30,7 @@ uint32_t fallHighSinceMs = 0;
 int borderThickness = 10;
 volatile int variable0_100 = 100;
 uint16_t lastBorderColor = 0;
+
 
 // toggles
 volatile bool lightsOn = false, audioOn = false, hapticsOn = false;
@@ -311,13 +314,22 @@ void display_loop(){
     if(!inCooldown) {
       bool fallLogical = (tilt_state != 0);
       if(fallLogical) {
-        if(fallHighSinceMs == 0) fallHighSinceMs = nowMs;
-        if(nowMs - fallHighSinceMs >= FALL_DEBOUNCE_MS) {
-          ui = UI_ALERT;
-          renderAlertOnce();
-        }else{
-          fallHighSinceMs = 0;
+        if(fallHighSinceMs == 0) {
+          fallHighSinceMs = nowMs;
+          //Serial.println("Fall detected - debounce start");
         }
+        if(nowMs - fallHighSinceMs >= FALL_DEBOUNCE_MS) {
+          //Serial.println("Alert triggered after debounce");
+          //ui = UI_ALERT;
+          //renderAlertOnce();
+          ui = UI_ALERT;
+          alertStartTimeMs = nowMs;
+          cancelButtonPressed = false;
+          renderAlertOnce();
+        }        
+     
+      }else{
+        fallHighSinceMs = 0;
       }
 
 
@@ -332,9 +344,17 @@ void display_loop(){
     // --- NEW: handle alert acknowledgement first ---
     if (ui == UI_ALERT) {
       // Any button press = user says it's a false alarm → start cooldown
-      fallCooldownUntilMs = millis() + FALL_COOLDOWN_MS;
-      fallHighSinceMs = 0;                 // reset debounce window
+      //fallCooldownUntilMs = millis() + FALL_COOLDOWN_MS;
+      //fallHighSinceMs = 0;                 // reset debounce window
       // Return to previous UI (choose where to go; Main is typical)
+      //ui = UI_MAIN;
+      //renderMainOnce();
+      uint32_t alertDuration = nowMs - alertStartTimeMs;
+      if(alertDuration < 30000){
+        cancelButtonPressed = true;
+      }
+      fallCooldownUntilMs = millis() + FALL_COOLDOWN_MS;
+      fallHighSinceMs = 0;
       ui = UI_MAIN;
       renderMainOnce();
     }
@@ -383,4 +403,6 @@ bool display_in_alert(){
   return (ui == UI_ALERT);
 } 
 
-
+bool cancel_pressed(){
+  return cancelButtonPressed;
+}

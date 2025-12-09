@@ -2,7 +2,7 @@
 
 // ---------- IF DEFS -----
 
-// #define wifi_en
+//#define wifi_en
 // #define esp_ultrasonics
 
 // ---------- EXTERNS ----------
