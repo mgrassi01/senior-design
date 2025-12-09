@@ -8,13 +8,16 @@
 // ---------- EXTERNS ----------
 enum UiState {UI_MAIN, UI_SETTINGS, UI_ALERT};   // add UI_ALERT
 extern volatile int tilt_state;
-extern int ultrasonic_state;
 
+// enum UltrasonicState {LEFT_V_CLOSE, LEFT_CLOSE, LEFT_FAR, RIGHT_V_CLOSE, RIGHT_CLOSE, RIGHT_FAR};
+// left side 
+enum UltrasonicState {FAR, RIGHT_MIDDLE, RIGHT_CLOSE, LEFT_MIDDLE, LEFT_CLOSE, CENTER_MIDDLE, CENTER_CLOSE};
+extern enum UltrasonicState ultrasonic_state;
 
 // for the feedback functions that can be turned on and off by pushbuttons
-// extern volatile bool audio = true;
-// extern volatile bool haptics = true;
-// extern volatile bool lights = true;
+extern volatile bool audio;
+extern volatile bool haptics;
+extern volatile bool lights;
 
 
 
@@ -45,12 +48,12 @@ const int TILT_PIN_B = 27;
 
 #endif
 #ifndef esp_ultrasonics
-    const int ULTRASONIC_PIN = -1 // change later
+    const int ULTRASONIC_PIN = -1; // change later
 #endif
 
 
 // ---------- USER INTERFACE / DISPLAY ----------
-#define BUTTON_PIN 27 //gpio button trigger for sensor test
+#define BUTTON_PIN 27; //gpio button trigger for sensor test
 
 // ---------- BUTTON PINS (safe) ----------
 const int LIGHTS_BTN_PIN = 22; // F1

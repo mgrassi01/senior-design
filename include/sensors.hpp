@@ -17,6 +17,18 @@
 #include "esp32-hal-gpio.h"
 
 
+// analog thresholds for voltage read from the ADC from the arduino 
+const float RIGHT_FAR_VOLTS = 2.75;
+const float RIGHT_CLOSE_VOLTS = 2.25;
+const float RIGHT_V_CLOSE_VOLTS = 1.75;
+
+const float LEFT_FAR_VOLTS = 1.25;
+const float LEFT_CLOSE_VOLTS = 0.75;
+const float LEFT_V_CLOSE_VOLTS = 0.25;
+
+const int ULTRASONIC_BUFFER = 0.225; // or .25 or .2, allows there to be a range of voltage read 
+
+
 
 
 const int BUFFER1 = 2;

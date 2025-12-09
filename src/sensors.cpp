@@ -7,7 +7,6 @@ ultrasonic, tilt, and light sensors.
 */
 
 
-
 int ldr(int);
 int ultrasonic(int, int);
 void ultrasonic_ldr_isr();
@@ -25,10 +24,9 @@ void IRAM_ATTR isr_tilt_L();
 
 // ----------------------------------- GLOBAL VARIABLES  --------------------------------//
 int ldr_state = 2; // start out assuming dim, the in-between value
-int ultrasonic_state = 0; 
 volatile int tilt_state = 0; // 3/4 bit val depending on which tilt sensors are enabled
 hw_timer_t* timer1 = nullptr;           // 50 Hz tick ??
-unsigned long tilt_threshold = 1000 * 1000 * 10; // 10 seconds
+unsigned long tilt_threshold =  1000 * 10; // 10 seconds
 volatile uint32_t last_tilt_us[4] = {0,0,0,0};
 const uint32_t tiltdebounceUs = 100;       // 0.1 ms - seems to be better than longer debounces 
 portMUX_TYPE tilt_mux = portMUX_INITIALIZER_UNLOCKED; // copied from display for similar isr
@@ -36,9 +34,8 @@ volatile int tilt_flags = 0;   // bit0..3 set by ISRs
 unsigned long tilt_time = 0; // time at which walker has fallen over and is stable
 
 
-// enum UiState {UI_MAIN, UI_SETTINGS, UI_ALERT};   // add UI_ALERT
-// extern volatile UiState ui = UI_MAIN;           // update your existing declaration
 
+// ---------- TILT SENSORS ----------
 
 void set_tilt_state(const int gpio_num, int idx){
    
@@ -47,6 +44,7 @@ void set_tilt_state(const int gpio_num, int idx){
   if (((tilt_flags >> idx ) & 1) == 1){
     tilt_flags &= ~(1 << idx);
   }
+  
 
   delay(10); // we may be able to make this delay shorter but 10 ms seems to work
   int level = digitalRead(gpio_num); // tell if its rising or falling - necessary
@@ -69,7 +67,6 @@ void set_tilt_state(const int gpio_num, int idx){
   }
 
 }
-
 
 
 void IRAM_ATTR tilt_isr(int idx){
@@ -95,6 +92,28 @@ void IRAM_ATTR isr_tilt_R(){
 }
 
 
+void tilt_init(){
+  pinMode(TILT_PIN_B, INPUT);
+  pinMode(TILT_PIN_F, INPUT);
+  pinMode(TILT_PIN_L, INPUT);
+  pinMode(TILT_PIN_R, INPUT);
+
+  attachInterrupt(digitalPinToInterrupt(TILT_PIN_F), isr_tilt_F, CHANGE); // needs to be change 
+  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_B), isr_tilt_B, CHANGE); // not sure this will work
+  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_L), isr_tilt_L, CHANGE); // not sure this will work
+  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_R), isr_tilt_R, CHANGE); // not sure this will work
+
+
+}
+
+
+
+// --------- LIGHT SENSOR ----------
+
+void ldr_init() {
+  pinMode(LDR_PIN1, INPUT);
+  pinMode(LDR_PIN2, INPUT);
+}
 
 // this is timer triggered and will run after the ultrasonics, in a similar way
 int ldr(int pin_num)
@@ -142,9 +161,9 @@ int ldr(int pin_num)
 }
 
 
+// ---------- ULTRASONICS ----------
 
-
-
+#ifdef esp_ultrasonics 
 int ultrasonic(int TRIG_PIN, int ECHO_PIN){
 
   float timing = 0.0;
@@ -213,12 +232,12 @@ int ultrasonic(int TRIG_PIN, int ECHO_PIN){
   return ultrasonic_state;
 }
  
+#endif
 
-
+#ifdef esp_ultrasonics
   void ultrasonic_ldr_isr(){
     // call the ultrasonic function and get the value
     // call it for L1 pins
-  #ifdef esp_ultrasonics
 
     int L1_ultrasonic_state = 0;
     int L2_ultrasonic_state = 0;
@@ -231,7 +250,6 @@ int ultrasonic(int TRIG_PIN, int ECHO_PIN){
     // the order is L2 | R2 | L1 | R1, MSB is L2
     ultrasonic_state = (L1_ultrasonic_state << 3) | (R1_ultrasonic_state ) | (L2_ultrasonic_state << 9) | (R2_ultrasonic_state << 6); // update the state
     
-  #endif
 
     int ldr1_state = ldr(LDR_PIN1);
     int ldr2_state = ldr(LDR_PIN2);
@@ -246,41 +264,14 @@ int ultrasonic(int TRIG_PIN, int ECHO_PIN){
     timerAlarmEnable(timer1);
 
   }
-
-
-
-void sensors_timer_init(){
-    // add an interrupt handler
-    // make the ultrasonic_ldr_isr the interrupt handler
-    // set the alarm for 1 or 5 seconds
-    timer1 = timerBegin(1, 80, true);// guessing this brings it down to 1 us?
-    timerAttachInterrupt(timer1, &ultrasonic_ldr_isr, true);
-    timerAlarmWrite(timer1, 1000*1000, true);
-    timerAlarmEnable(timer1);
-
-}
-
-
-void tilt_init(){
-  pinMode(TILT_PIN_B, INPUT);
-  pinMode(TILT_PIN_F, INPUT);
-  pinMode(TILT_PIN_L, INPUT);
-  pinMode(TILT_PIN_R, INPUT);
-
-  attachInterrupt(digitalPinToInterrupt(TILT_PIN_F), isr_tilt_F, CHANGE); // needs to be change 
-  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_B), isr_tilt_B, CHANGE); // not sure this will work
-  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_L), isr_tilt_L, CHANGE); // not sure this will work
-  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_R), isr_tilt_R, CHANGE); // not sure this will work
-
-
-}
+#endif
 
 void ultrasonic_init() {
   #ifndef esp_ultrasonics
   Serial.println("\nWe are not using the Ultrasonics on ESP32. Please connect the arduino. \n");
   pinMode(ULTRASONIC_PIN, ANALOG);
   #endif
-  
+
   #ifdef esp_ultrasonics
   pinMode(ECHO_PIN_L1, INPUT);
   pinMode(ECHO_PIN_R1, INPUT);
@@ -300,10 +291,29 @@ void ultrasonic_init() {
   #endif
 }
 
-void ldr_init() {
-  pinMode(LDR_PIN1, INPUT);
-  pinMode(LDR_PIN2, INPUT);
+
+// #ifndef esp_ultrasonics 
+// int set_ultrasonic_state(){
+
+//   return(ultrasonic_state);
+// }
+
+// #endif
+
+
+void sensors_timer_init(){
+    // add an interrupt handler
+    // make the ultrasonic_ldr_isr the interrupt handler
+    // set the alarm for 1 or 5 seconds
+    timer1 = timerBegin(1, 80, true);// guessing this brings it down to 1 us?
+    timerAttachInterrupt(timer1, &ultrasonic_ldr_isr, true);
+    timerAlarmWrite(timer1, 1000*1000, true);
+    timerAlarmEnable(timer1);
+
 }
+
+
+
 
 
 // when the gold lead is tilted DOWN, the circuit closes. 

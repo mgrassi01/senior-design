@@ -9,6 +9,10 @@
 
 const uint32_t SMS_COOLDOWN_MS = 1UL * 10UL * 1000UL; //10 seconds (changed from 5 minutes)
 uint32_t lastSmsMs = 0;
+volatile bool haptics = true;
+volatile bool audio = true;
+volatile bool lights = true;
+enum UltrasonicState ultrasonic_state = LEFT_CLOSE;
 
 
 
@@ -89,7 +93,7 @@ void setup(){
 // }
 
 void loop() {
-    static bool prevAlert = false;
+    static bool prevAlert = false; // what?
 
     display_loop();
     #ifdef feedback_en
@@ -123,7 +127,7 @@ void loop() {
     // set_tilt_state(TILT_PIN_L, 1);
     // set_tilt_state(TILT_PIN_B, 2);
     set_tilt_state(TILT_PIN_F, 3);
-    
+
     nowAlert = check_tilt_time();
 
  
