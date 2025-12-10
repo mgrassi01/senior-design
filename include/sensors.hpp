@@ -17,26 +17,17 @@
 #include "esp32-hal-gpio.h"
 
 
-// analog thresholds for voltage read from the ADC from the arduino 
-const float RIGHT_FAR_VOLTS = 2.75;
-const float RIGHT_CLOSE_VOLTS = 2.25;
-const float RIGHT_V_CLOSE_VOLTS = 1.75;
+#define ESP_INTR_FLAG_DEFAULT 0
 
-const float LEFT_FAR_VOLTS = 1.25;
-const float LEFT_CLOSE_VOLTS = 0.75;
-const float LEFT_V_CLOSE_VOLTS = 0.25;
-
-const int ULTRASONIC_BUFFER = 0.225; // or .25 or .2, allows there to be a range of voltage read 
-
-
+// #define ULTRASONIC_OUTPUT_MASK ((1 << TRIG_PIN_L1) | (1 << TRIG_PIN_L2) | (1 << TRIG_PIN_R1) | (1 << TRIG_PIN_R2))
+// #define ULTRASONIC_INPUT_MASK ((1 << ECHO_PIN_L1) | (1 << ECHO_PIN_L2) | (1 << ECHO_PIN_R1) | (1 << ECHO_PIN_R2))
 
 
 const int BUFFER1 = 2;
 const int BUFFER2 = 2;
 const int BUFFER3 = 2;
 
-
-
+enum UltrasonicState {FAR, RIGHT_MIDDLE, RIGHT_CLOSE, LEFT_MIDDLE, LEFT_CLOSE, CENTER_MIDDLE, CENTER_CLOSE, INVALID_STATE};
 
 // constant values, can be changed 
 const int VERY_DIM = 1.75;
@@ -44,13 +35,7 @@ const int BRIGHT = 1.2;
 const int LDR_BUFFER = 0.05; 
 
 
-#define ESP_INTR_FLAG_DEFAULT 0
-
-#define ULTRASONIC_OUTPUT_MASK ((1 << TRIG_PIN_L1) | (1 << TRIG_PIN_L2) | (1 << TRIG_PIN_R1) | (1 << TRIG_PIN_R2))
-#define ULTRASONIC_INPUT_MASK ((1 << ECHO_PIN_L1) | (1 << ECHO_PIN_L2) | (1 << ECHO_PIN_R1) | (1 << ECHO_PIN_R2))
-
-
-
 void sensors_init(); // initilizes the tilt sensors and ultrasonic ADC pin 
 void set_tilt_state(const int, int); // gets the current 4 bit value of tilt
 int check_tilt_time(); // sees if the walker has fallen over long enough to consider it a valid fall, returns the state 
+enum UltrasonicState get_ultrasonic_state(enum UltrasonicState); // gets the current ultrasonic state based on the analog value sent from the arduino
