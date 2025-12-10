@@ -3,8 +3,8 @@
 // ---------- IF DEFS -----
 
 // #define wifi_en
-// #define esp_ultrasonics
-#define new_esp
+// #define esp_ultrasonics // keep commented
+// #define new_esp
 
 // ===================== EXTERNS =====================
 enum UiState {UI_MAIN, UI_SETTINGS, UI_ALERT};   // add UI_ALERT

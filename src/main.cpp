@@ -9,12 +9,13 @@
 // ---------- EXTERNS (declared in pin.hpp) ---------- //
 volatile int       tilt_state;
 enum UltrasonicState ultrasonic_state = FAR;
+bool walker_fallen = false;
 
 
 // for the feedback functions that can be turned on and off by pushbuttons
-volatile bool audio   = true;
-volatile bool haptics = true;
-volatile bool lights  = true;
+bool audio   = true;
+bool haptics = true;
+bool lights  = true;
 
 
 

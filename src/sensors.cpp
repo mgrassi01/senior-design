@@ -140,6 +140,7 @@ int check_tilt_time(){
   if((tilt_time > 0) && ((millis() - tilt_time ) > tilt_threshold)) {
     if( tilt_state!=0){
       alert = UI_ALERT;
+      walker_fallen = true; // needs to be turned false in ananyya's code 
       Serial.println("\nwalker has tipped over");
       tilt_time = 0; // turn off the timer so it doesnt keep sending the message 
     }
