@@ -4,7 +4,7 @@
 .vscode/launch.json
 .vscode/ipch
 include/secrets.h
-# .pio/
+.pio/
 # .vscode/
 .pio/build/rymcu-esp32-devkitc/.sconsign312.dblite
 .pio/build/rymcu-esp32-devkitc/firmware.bin
