@@ -2,6 +2,45 @@
 #include <Arduino.h>
 TFT_eSPI tft;
 
+#define TFT_MISO   19
+#define TFT_MOSI   23
+#define TFT_SCLK   18
+#define TFT_CS     15
+#define TFT_DC      2     // strap-sensitive, must not be LOW on boot
+#define TFT_RST     4     // strap-sensitive, keep HIGH on boot
+
+// ===================== EXTRA SPI DEVICE =====================
+#define SPI_CS2    27
+
+// ===================== OUTPUT PINS ==========================
+#define HEADLIGHT  21
+#define ERM1       14
+#define ERM2       26
+
+#define LED_A      17
+#define LED_B       0      // Requires external 10k pull-up
+#define LED_C      16     
+
+// ===================== INPUT PINS ===========================
+// Buttons (all input-only pins)
+#define BUTTON1    36
+#define BUTTON2    34
+#define BUTTON3    35
+#define BUTTON4    39
+
+// Tilt sensors
+#define TILT1      5   
+#define TILT2      22
+#define TILT3      13
+
+// ===================== ANALOG INPUTS ========================
+#define ADC_BATTERY 32
+#define ADC_ULTRA   33
+
+// ===================== DAC OUTPUT ===========================
+#define DAC_OUT     25
+
+
 // ---------- BUTTON PINS (safe) ----------
 const int BTN1 = 22;
 const int BTN2 = 1;
