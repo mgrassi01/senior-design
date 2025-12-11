@@ -70,8 +70,8 @@ void tilt_init(){
 
   // attachInterrupt(digitalPinToInterrupt(TILT_PIN_F), isr_tilt_F, CHANGE); // needs to be change 
   attachInterrupt(digitalPinToInterrupt(TILT_PIN_B), isr_tilt_B, CHANGE); // not sure this will work
-  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_L), isr_tilt_L, CHANGE); // not sure this will work
-  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_R), isr_tilt_R, CHANGE); // not sure this will work
+  attachInterrupt(digitalPinToInterrupt(TILT_PIN_L), isr_tilt_L, CHANGE); // not sure this will work
+  attachInterrupt(digitalPinToInterrupt(TILT_PIN_R), isr_tilt_R, CHANGE); // not sure this will work
 
 }
 
@@ -90,8 +90,8 @@ void set_tilt_state(const int gpio_num, int idx){
   // 4 bit val goes like FRONT | BACK | LEFT | RIGHT
   if(level == HIGH){
     tilt_state |= (1 << idx);
-    // Serial.println("\n tilt state: ");
-    // Serial.print(tilt_state);
+    Serial.println("\n tilt state: ");
+    Serial.print(tilt_state);
     // reset the timer and start counting again: will count time starting from last debounce
     tilt_time = millis(); // current time in ms
   }
@@ -207,7 +207,7 @@ int ldr(int pin_num)
 
 void ultrasonic_init() {
   #ifndef esp_ultrasonics
-  Serial.println("\nWe are not using the Ultrasonics on ESP32. Please connect the arduino. \n");
+  // Serial.println("\nWe are not using the Ultrasonics on ESP32. Please connect the arduino. \n");
   pinMode(ULTRASONIC_PIN, ANALOG);
   #endif
   
@@ -245,7 +245,7 @@ enum UltrasonicState int_to_ultrasonic_state(int int_state){
 enum UltrasonicState get_ultrasonic_state(enum UltrasonicState prev){
   int analog_in_val = analogRead(ULTRASONIC_PIN); // read from the arduino
   if(analog_in_val == 0) return(prev);
-  delay(100);
+  // delay(100);
   float voltage_level =  (float)analog_in_val * 3.3 / 4095.0; // see what the voltge sent actually is
   voltage_level *= 3.04/2.9;
   int state = (int) round((voltage_level - 3.3/14.0 ) * 7.0/3.3); // should round to a number 0-6
@@ -281,6 +281,12 @@ void init_ultrasonics_led(){
   digitalWrite(GREEN_LED_GPIO, LOW);
   digitalWrite(YELLOW_LED_GPIO,LOW);
   digitalWrite(RED_LED_GPIO,LOW);
+
+  pinMode(HAPTIC_L_GPIO, OUTPUT);
+  pinMode(HAPTIC_R_GPIO, OUTPUT);
+
+  digitalWrite(HAPTIC_L_GPIO, LOW);
+  digitalWrite(HAPTIC_R_GPIO, LOW);
 }
 
 void update_ultrasonic_led(enum UltrasonicState state){
@@ -307,22 +313,57 @@ void update_ultrasonic_led(enum UltrasonicState state){
   }
 }
 
+// void hapticHell(){
+//   if(ultrasonic_state == RIGHT_CLOSE){
+//     digitalWrite(HAPTIC_R_GPIO, HIGH);
+//     delay(500);
+//     digitalWrite(HAPTIC_R_GPIO, LOW);
+//     delay(500);
+//   } else if(ultrasonic_state == RIGHT_MIDDLE){
+//     for(int i = 0; i <2; i++){
+//       digitalWrite(HAPTIC_R_GPIO, HIGH);
+//       delay(250);
+//       digitalWrite(HAPTIC_R_GPIO, LOW);
+//       delay(250);
+//     }
+//   } else{
+//     digitalWrite(HAPTIC_R_GPIO, LOW);
+//   }
+// }
+
 void hapticHell(int stateL, int stateR)
 { //left side
+
+  // if(ultrasonic_state == RIGHT_CLOSE || ultrasonic_state == LEFT_CLOSE || ultrasonic_state == CENTER_CLOSE){
+  //   digitalWrite(RED_LED_GPIO, HIGH);
+  //   digitalWrite(YELLOW_LED_GPIO, LOW);
+  //   digitalWrite(GREEN_LED_GPIO, LOW);
+  // } else if(ultrasonic_state == RIGHT_MIDDLE || ultrasonic_state == LEFT_MIDDLE || ultrasonic_state == CENTER_MIDDLE){
+  //   digitalWrite(RED_LED_GPIO, LOW);
+  //   digitalWrite(YELLOW_LED_GPIO, HIGH);
+  //   digitalWrite(GREEN_LED_GPIO, LOW);
+  // } else{
+  //   digitalWrite(RED_LED_GPIO, LOW);
+  //   digitalWrite(YELLOW_LED_GPIO,LOW);
+  //   digitalWrite(GREEN_LED_GPIO, HIGH);
+  // }
+
+  #define haptics_enabled
+  #ifdef haptics_enabled
   if (stateL == 2)
   {
     digitalWrite(HAPTIC_L_GPIO, HIGH);
-    delay(500);
-    digitalWrite(HAPTIC_L_GPIO, LOW);
-    delay(500);
+    // delay(500);
+    // digitalWrite(HAPTIC_L_GPIO, LOW);
+    // delay(500);
   }
   else if(stateL == 1)
   { 
     for(int i = 0; i <2; i++){
       digitalWrite(HAPTIC_L_GPIO, HIGH);
-      delay(250);
-      digitalWrite(HAPTIC_L_GPIO, LOW);
-      delay(250);
+      // delay(500);
+      // digitalWrite(HAPTIC_L_GPIO, LOW);
+      // delay(500);
     }
   } else{
     digitalWrite(HAPTIC_L_GPIO, LOW);
@@ -330,22 +371,24 @@ void hapticHell(int stateL, int stateR)
   //right side
   if(stateR ==2){
     digitalWrite(HAPTIC_R_GPIO,HIGH);
-    delay(500);
-    digitalWrite(HAPTIC_R_GPIO,LOW);
-    delay(500);
+    // delay(500);
+    // digitalWrite(HAPTIC_R_GPIO,LOW);
+    // delay(500);
   }else if(stateR ==1){
     for (int i=0; i <2; i++){
       digitalWrite(HAPTIC_R_GPIO, HIGH);
-      delay(500);
-      digitalWrite(HAPTIC_R_GPIO, LOW);
-      delay(500);
+      // delay(500);
+      // digitalWrite(HAPTIC_R_GPIO, LOW);
+      // delay(500);
     }
   }else{
     digitalWrite(HAPTIC_R_GPIO, LOW);
   }
+  #endif
 }
 
 void update_ultrasonics_haptics(enum UltrasonicState state){
+  // if (haptics == false) return;
   int left_state = 0;
   int right_state = 0;
 
@@ -386,6 +429,25 @@ void update_ultrasonics_haptics(enum UltrasonicState state){
   }
 
   hapticHell(left_state, right_state);
+}
+
+void led_output(){
+  if(!lights) return;
+  if(ultrasonic_state == RIGHT_CLOSE || ultrasonic_state == LEFT_CLOSE || ultrasonic_state == CENTER_CLOSE){
+    digitalWrite(RED_LED_GPIO, HIGH);
+    digitalWrite(YELLOW_LED_GPIO, LOW);
+    digitalWrite(GREEN_LED_GPIO, LOW);
+  } else if(ultrasonic_state == RIGHT_MIDDLE || ultrasonic_state == LEFT_MIDDLE || ultrasonic_state == CENTER_MIDDLE){
+    digitalWrite(RED_LED_GPIO, LOW);
+    digitalWrite(YELLOW_LED_GPIO, HIGH);
+    digitalWrite(GREEN_LED_GPIO, LOW);
+  } else{
+    digitalWrite(RED_LED_GPIO, LOW);
+    digitalWrite(YELLOW_LED_GPIO,LOW);
+    digitalWrite(GREEN_LED_GPIO, HIGH);
+  }
+
+
 }
 #ifdef esp_ultrasonics
 

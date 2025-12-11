@@ -14,7 +14,7 @@ bool walker_fallen = false;
 
 // for the feedback functions that can be turned on and off by pushbuttons
 bool audio   = true;
-bool haptics = true;
+bool haptics = false;
 bool lights  = true;
 
 
@@ -140,8 +140,8 @@ void loop() {
 
     // maybe goes first? 
 
-    // set_tilt_state(TILT_PIN_R, 0);
-    // set_tilt_state(TILT_PIN_L, 1);
+    set_tilt_state(TILT_PIN_R, 0);
+    set_tilt_state(TILT_PIN_L, 1);
     set_tilt_state(TILT_PIN_B, 2);
     // set_tilt_state(TILT_PIN_F, 3);
     
@@ -150,9 +150,13 @@ void loop() {
     enum UltrasonicState prev_ultrasonic_state = ultrasonic_state;
     ultrasonic_state = get_ultrasonic_state(prev_ultrasonic_state);
     update_ultrasonic_led(ultrasonic_state);
+
     if(haptics){
         update_ultrasonics_haptics(ultrasonic_state);
     }
+    led_output();
+
+    
 
     delay(10);
 }

@@ -44,3 +44,5 @@ void init_ultrasonics_led();
 void update_ultrasonic_led(enum UltrasonicState); // updates the ultrasonic led based on the current state
 void hapticHell(int, int); // activates the haptics based on the left and right state
 void update_ultrasonics_haptics(enum UltrasonicState); // updates the haptics based on the current ultrasonic state
+
+void led_output(); // updates the led based on the ultrasonic state

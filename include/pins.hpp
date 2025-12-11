@@ -2,7 +2,7 @@
 
 // ---------- IF DEFS -----
 
-#define wifi_en
+// #define wifi_en
 // #define esp_ultrasonics // keep commented
 #define new_esp
 
@@ -94,11 +94,11 @@ const int SD_CS = 15;  // Chip select pin for SD card
 
 
 // ===================== DISPLAY PINS =====================
-#define TFT_MISO   19
+// #define TFT_MISO   19
 #define TFT_MOSI   23
 #define TFT_SCLK   18
 #define TFT_CS     15   // strap-sensitive, must not be LOW on boot
-#define TFT_DC      2     // strap-sensitive, must not be LOW on boot
+#define TFT_DC     2//19     // strap-sensitive, must not be LOW on boot
 #define TFT_RST     4     // strap-sensitive, keep HIGH on boot
 
 // ===================== EXTRA SPI DEVICE =====================
@@ -124,8 +124,8 @@ const int HEADLIGHT_GPIO_LEFT = -1;
 const int HEADLIGHT_GPIO_RIGHT = -1; 
 
 // Define Haptic pin numbers
-const int HAPTIC_L_GPIO = ERM1; // 14; // 14 is LDR_PIN2-change this
-const int HAPTIC_R_GPIO = ERM2;
+const int HAPTIC_L_GPIO = ERM2; // 14; // 14 is LDR_PIN2-change this
+const int HAPTIC_R_GPIO = ERM1;
 
 
 
