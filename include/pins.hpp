@@ -2,7 +2,7 @@
 
 // ---------- IF DEFS -----
 
-// #define wifi_en
+#define wifi_en
 // #define esp_ultrasonics // keep commented
 #define new_esp
 
@@ -77,7 +77,7 @@ const int HEADLIGHT_GPIO_LEFT = -1;
 const int HEADLIGHT_GPIO_RIGHT = -1; 
 
 // Define Haptic pin numbers
-const int HAPTIC_L_GPIO = -1; // 14; // 14 is LDR_PIN2-change this
+const int HAPTIC_L_GPIO = 21; // 14; // 14 is LDR_PIN2-change this
 const int HAPTIC_R_GPIO = 5;
 
 
@@ -124,8 +124,8 @@ const int HEADLIGHT_GPIO_LEFT = -1;
 const int HEADLIGHT_GPIO_RIGHT = -1; 
 
 // Define Haptic pin numbers
-const int HAPTIC_L_GPIO = -1; // 14; // 14 is LDR_PIN2-change this
-const int HAPTIC_R_GPIO = 5;
+const int HAPTIC_L_GPIO = ERM1; // 14; // 14 is LDR_PIN2-change this
+const int HAPTIC_R_GPIO = ERM2;
 
 
 

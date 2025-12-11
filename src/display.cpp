@@ -14,7 +14,7 @@ float potFilt = 0.0f;
 const float alpha = 0.15f;
 // ---------- FALL ALERT (GPIO35) ----------
 // enum UiState { UI_MAIN, UI_SETTINGS, UI_ALERT };   // add UI_ALERT
-volatile UiState ui = UI_MAIN;           // update your existing declaration
+volatile UiState ui = UI_SETTINGS;           // update your existing declaration
 //cancel button 
 static uint32_t alertStartTimeMs = 0;
 static bool cancelButtonPressed = false;
@@ -279,7 +279,7 @@ void display_setup(){
 
   // initial UI
   variable0_100 = readPotPercent();
-  renderMainOnce();
+  renderSettingsOnce();
 }
 
 

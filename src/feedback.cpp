@@ -27,10 +27,10 @@ void feedback_setup()
   pinMode(YELLOW_LED_GPIO, OUTPUT);  //Need to be changed according to correct pin
   pinMode(RED_LED_GPIO, OUTPUT);
 
-  pinMode(HEADLIGHT_GPIO, OUTPUT);
+  pinMode(HEADLIGHT, OUTPUT);
 
-  pinMode(HAPTIC_L_GPIO, OUTPUT);
-  pinMode(HAPTIC_R_GPIO, OUTPUT);
+  if (HAPTIC_L_GPIO != -1) pinMode(HAPTIC_L_GPIO, OUTPUT);
+  if (HAPTIC_R_GPIO != -1) pinMode(HAPTIC_R_GPIO, OUTPUT);
 
   // Example call to the function (you can call it from anywhere)
   handleLEDs(4, 2);
@@ -97,11 +97,11 @@ void headlights(int ldrState)
 {
   if (ldrState == 1)
   {
-    digitalWrite(HEADLIGHT_GPIO, HIGH);
+    digitalWrite(HEADLIGHT, HIGH);
   }
   else
   {
-    digitalWrite(HEADLIGHT_GPIO, LOW);
+    digitalWrite(HEADLIGHT, LOW);
   }
 }
 
@@ -110,49 +110,53 @@ void headlights(int ldrState)
 void hapticHell(int stateL, int stateR) 
 {
   // --- LEFT Side ---
-  if (stateL == 2) 
-  {
-    digitalWrite(HAPTIC_L_GPIO, HIGH);
-    delay(500);
-    digitalWrite(HAPTIC_L_GPIO, LOW);
-    delay(500);
-  } 
-  else if (stateL == 1) 
-  {
-    for (int i = 0; i < 2; i++) 
+  if (HAPTIC_L_GPIO != -1) {
+    if (stateL == 2) 
     {
       digitalWrite(HAPTIC_L_GPIO, HIGH);
-      delay(250);
+      delay(500);
       digitalWrite(HAPTIC_L_GPIO, LOW);
-      delay(250);
+      delay(500);
+    } 
+    else if (stateL == 1) 
+    {
+      for (int i = 0; i < 2; i++) 
+      {
+        digitalWrite(HAPTIC_L_GPIO, HIGH);
+        delay(250);
+        digitalWrite(HAPTIC_L_GPIO, LOW);
+        delay(250);
+      }
     }
-  }
-  else 
-  {
-    digitalWrite(HAPTIC_L_GPIO, LOW);
+    else 
+    {
+      digitalWrite(HAPTIC_L_GPIO, LOW);
+    }
   }
 
   // --- RIGHT Side ---
-  if (stateR == 2) 
-  {
-    digitalWrite(HAPTIC_R_GPIO, HIGH);
-    delay(500);
-    digitalWrite(HAPTIC_R_GPIO, LOW);
-    delay(500);
-  } 
-  else if (stateR == 1) 
-  {
-    for (int i = 0; i < 2; i++) 
+  if (HAPTIC_R_GPIO != -1) {
+    if (stateR == 2) 
     {
       digitalWrite(HAPTIC_R_GPIO, HIGH);
-      delay(250);
+      delay(500);
       digitalWrite(HAPTIC_R_GPIO, LOW);
-      delay(250);
+      delay(500);
+    } 
+    else if (stateR == 1) 
+    {
+      for (int i = 0; i < 2; i++) 
+      {
+        digitalWrite(HAPTIC_R_GPIO, HIGH);
+        delay(250);
+        digitalWrite(HAPTIC_R_GPIO, LOW);
+        delay(250);
+      }
+    } 
+    else 
+    {
+      digitalWrite(HAPTIC_R_GPIO, LOW);
     }
-  } 
-  else 
-  {
-    digitalWrite(HAPTIC_R_GPIO, LOW);
   }
 }
 
