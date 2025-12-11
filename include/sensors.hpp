@@ -40,7 +40,7 @@ void sensors_init(); // initilizes the tilt sensors and ultrasonic ADC pin
 void set_tilt_state(const int, int); // gets the current 4 bit value of tilt
 int check_tilt_time(); // sees if the walker has fallen over long enough to consider it a valid fall, returns the state 
 enum UltrasonicState get_ultrasonic_state(enum UltrasonicState); // gets the current ultrasonic state based on the analog value sent from the arduino
-void int_ultrasonics_led();
+void init_ultrasonics_led();
 void update_ultrasonic_led(enum UltrasonicState); // updates the ultrasonic led based on the current state
 void hapticHell(int, int); // activates the haptics based on the left and right state
 void update_ultrasonics_haptics(enum UltrasonicState); // updates the haptics based on the current ultrasonic state

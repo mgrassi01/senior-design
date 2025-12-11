@@ -53,7 +53,7 @@ void sensors_init() {
   // ldr_init(); // dont need this if doing it the analog way 
   ultrasonic_init();
   tilt_init();
-  init_ultrasonic_led();
+  init_ultrasonics_led();
   // sensors_timer_init(); // this appears to be causing sthe micro to reset
 }
 
@@ -64,12 +64,12 @@ void sensors_init() {
 
 void tilt_init(){
   pinMode(TILT_PIN_B, INPUT);
-  pinMode(TILT_PIN_F, INPUT);
+  // pinMode(TILT_PIN_F, INPUT);
   pinMode(TILT_PIN_L, INPUT);
   pinMode(TILT_PIN_R, INPUT);
 
-  attachInterrupt(digitalPinToInterrupt(TILT_PIN_F), isr_tilt_F, CHANGE); // needs to be change 
-  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_B), isr_tilt_B, CHANGE); // not sure this will work
+  // attachInterrupt(digitalPinToInterrupt(TILT_PIN_F), isr_tilt_F, CHANGE); // needs to be change 
+  attachInterrupt(digitalPinToInterrupt(TILT_PIN_B), isr_tilt_B, CHANGE); // not sure this will work
   // attachInterrupt(digitalPinToInterrupt(TILT_PIN_L), isr_tilt_L, CHANGE); // not sure this will work
   // attachInterrupt(digitalPinToInterrupt(TILT_PIN_R), isr_tilt_R, CHANGE); // not sure this will work
 
@@ -284,7 +284,7 @@ void init_ultrasonics_led(){
 }
 
 void update_ultrasonic_led(enum UltrasonicState state){
-  digitalWrite(GREEN_LED_GPI0, LOW);
+  digitalWrite(GREEN_LED_GPIO, LOW);
   digitalWrite(YELLOW_LED_GPIO,LOW);
   digitalWrite(RED_LED_GPIO,LOW);
   switch(state){

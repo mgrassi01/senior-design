@@ -234,7 +234,7 @@ void IRAM_ATTR onTick(){ tickFlag = true; } // timer ISR only sets a flag
 
 // ---------- ADC read (in loop) ----------
 int readPotPercent(){
-  int raw = analogRead(POT_PIN);
+  int raw = analogRead(ADC_BATTERY);
   raw = constrain(raw, adc_min_cal, adc_max_cal);
   float norm = (float)(raw - adc_min_cal) / (float)(adc_max_cal - adc_min_cal);
   norm = constrain(norm, 0.0f, 1.0f);
@@ -261,7 +261,7 @@ void display_setup(){
 
   // ADC (unchanged) ...
   analogReadResolution(12);
-  analogSetPinAttenuation(POT_PIN, ADC_11db);
+  analogSetPinAttenuation(ADC_BATTERY, ADC_11db);
 
   // Timer (unchanged) ...
   uiTimer = timerBegin(0, 80, true);

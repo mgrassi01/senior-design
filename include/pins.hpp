@@ -26,7 +26,7 @@ const int FALL_PIN = 13; // 35; //              // goes HIGH when fall is detect
 
 const int LDR_PIN2 = 14;
 const int LDR_PIN1 = FALL_PIN; // this might not work lol 
-const int POT_PIN = 34;           // ADC1 only
+const int ADC_BATTERY = 34;           // ADC1 only
 
 
 const int TILT_PIN_L = 39;
@@ -116,13 +116,25 @@ const int SD_CS = 15;  // Chip select pin for SD card
 const int LED_F1 = LED_A; 
 const int LED_F2 = LED_B;    
 const int LED_F3 = LED_C; 
+const int GREEN_LED_GPIO = LED_A; // 1 is taken by SPEAKER_BTN_PIN so change this, corresponts to LED_f1
+const int YELLOW_LED_GPIO = LED_B; // correspongs to LED_F2
+const int RED_LED_GPIO = LED_C; // 3 is taken by AUDIO_BTN_PIN, 33 corresponds to LEDaudio
+
+const int HEADLIGHT_GPIO_LEFT = -1; 
+const int HEADLIGHT_GPIO_RIGHT = -1; 
+
+// Define Haptic pin numbers
+const int HAPTIC_L_GPIO = -1; // 14; // 14 is LDR_PIN2-change this
+const int HAPTIC_R_GPIO = 5;
+
+
 
 // ===================== INPUT PINS ===========================
 // Buttons (all input-only pins)
-#define BUTTON1    35
-#define BUTTON2    34
-#define BUTTON3    25
-#define BUTTON4    39
+const int BUTTON1 =   35;
+const int BUTTON2 =   34;
+const int BUTTON3 =   25;
+const int BUTTON4 =   39;
 // ---------- BUTTON PINS (safe) ----------
 const int LIGHTS_BTN_PIN = BUTTON1;
 const int HAPTICS_BTN_PIN = BUTTON2; 
@@ -134,7 +146,12 @@ const int BTN4 = BUTTON4; // mainui/settings
 #define TILT1      5   // tilt B (alternative: 37)
 #define TILT2      22  // tilt L (alternative: 38)
 #define TILT3      13  // tilt R
+const int TILT_PIN_B = TILT1;
+const int TILT_PIN_L = TILT2;
+const int TILT_PIN_R = TILT3;
 
+const int LDR_PIN2 = -1;
+const int LDR_PIN1 = -1;
 // ===================== ANALOG INPUTS ========================
 #define ADC_BATTERY 32
 #define ADC_ULTRA   33

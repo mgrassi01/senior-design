@@ -142,8 +142,8 @@ void loop() {
 
     // set_tilt_state(TILT_PIN_R, 0);
     // set_tilt_state(TILT_PIN_L, 1);
-    // set_tilt_state(TILT_PIN_B, 2);
-    set_tilt_state(TILT_PIN_F, 3);
+    set_tilt_state(TILT_PIN_B, 2);
+    // set_tilt_state(TILT_PIN_F, 3);
     
     nowAlert = check_tilt_time();
 
@@ -151,7 +151,7 @@ void loop() {
     ultrasonic_state = get_ultrasonic_state(prev_ultrasonic_state);
     update_ultrasonic_led(ultrasonic_state);
     if(haptics){
-        update_ultrasonic_haptics(ultrasonic_state);
+        update_ultrasonics_haptics(ultrasonic_state);
     }
 
     delay(10);
