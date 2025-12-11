@@ -7,26 +7,26 @@
 TFT_eSPI tft;
 
 // ---------- UI / SYSTEM STATE ----------
-enum UiState { UI_SETTINGS, UI_ALERT };
-volatile UiState ui = UI_SETTINGS;   // DEFAULT SCREEN = SETTINGS
+enum UiState {  UI_SETTINGS, UI_ALERT };
+volatile UiState ui = UI_SETTINGS;   // DEFAULT SCREEN = MAIN
 
 int borderThickness = 10;
 volatile int variable0_100 = 100;
 uint16_t lastBorderColor = 0;
 
 // ---------- FEATURE TOGGLES ----------
-// F1: Speaker (UI only, no hardware)
-// F2: Headlight (HEADLIGHT pin)
-// F3: ERM (ERM1 + ERM2 pins)
-volatile bool speakerOn   = true;
-volatile bool headlightOn = true;
-volatile bool ermOn       = true;
+// lightsOn (F1): Speaker (UI only, no hardware)
+// audioOn (F2): Headlight (HEADLIGHT pin)
+// hapticsOn (F3): ERM (ERM1 + ERM2 pins)
+volatile bool lightsOn   = false;
+volatile bool audioOn    = false;
+volatile bool hapticsOn  = false;
 
 // ---------- FALL DETECTION ----------
-const uint32_t FALL_COOLDOWN_MS = 1UL * 60UL * 1000UL;
+const uint32_t FALL_COOLDOWN_MS = 1UL * 10UL * 1000UL; // 10 seconds for testing
 uint32_t fallCooldownUntilMs = 0;
 
-const uint32_t FALL_DEBOUNCE_MS = 1000;
+const uint32_t FALL_DEBOUNCE_MS = 100;
 uint32_t fallHighSinceMs = 0;
 
 // ---------- BUTTON ISR FLAGS ----------
@@ -34,13 +34,15 @@ volatile uint32_t buttonEdgeFlags = 0;
 volatile bool tickFlag = false;
 volatile uint32_t lastEdgeUs[3] = {0,0,0};   // 3 buttons only
 const uint32_t debounceUs = 120000;          // 80ms
+uint32_t lastUiChangeMs = 0;
+const uint32_t uiCooldownMs = 200;           // 200ms cooldown between screen switches
 
 // ---------- TIMER ----------
 hw_timer_t* uiTimer = nullptr;
 
-// ---------- RECTANGLES FOR SETTINGS ----------
+// ---------- RECTANGLES FOR LAYOUT ----------
 struct Rect { int x,y,w,h; };
-Rect gSpeaker, gHeadlight, gERM;
+Rect gF1, gAUDIO, gHAPTICS, gMain;
 
 // ------------------------------------------------------
 //                COLOR HELPERS
@@ -79,11 +81,11 @@ void clearInnerArea(int thickness){
 }
 
 void drawToggleButton(int x,int y,int w,int h,const char* label,bool on){
-  uint16_t fill = on ? TFT_GREEN : TFT_RED;
+  uint16_t fill = on ? TFT_DARKGREEN : TFT_RED;
   tft.fillRoundRect(x,y,w,h,6,fill);
-  tft.drawRoundRect(x,y,w,h,6,TFT_YELLOW);
+  tft.drawRoundRect(x,y,w,h,6,TFT_LIGHTGREY);
   tft.setTextDatum(MC_DATUM);
-  tft.setTextColor(TFT_BLACK, fill);
+  tft.setTextColor(TFT_WHITE, fill);
   String s = String(label) + (on ? " ON" : " OFF");
   tft.drawString(s, x+w/2, y+h/2+3, 4);
 }
@@ -102,6 +104,36 @@ void drawBattery(int pct){
 
 
 // ------------------------------------------------------
+//                   MAIN SCREEN
+// ------------------------------------------------------
+void renderMainOnce(){
+  uint16_t c=borderColorFromVariable(variable0_100); 
+  lastBorderColor=c;
+  drawBorder(borderThickness,c); 
+  clearInnerArea(borderThickness);
+
+  int w=tft.width(), h=tft.height();
+  int bw=w*3/4, bh=100, bx=(w-bw)/2, by=(h-bh)/2;
+  drawButton(bx,by,bw,bh,"Settings",TFT_WHITE,TFT_DARKGREY);
+  drawBattery(variable0_100);
+}
+
+
+// Helper function for drawButton
+void drawButton(int x, int y, int w, int h, const char* label, uint16_t outline, uint16_t fill) {
+  tft.fillRoundRect(x, y, w, h, 6, fill);
+  tft.drawRoundRect(x, y, w, h, 6, outline);
+
+  const int fontNum = 4;
+  const int yNudge  = 3;
+
+  tft.setTextDatum(MC_DATUM);
+  tft.setTextColor(TFT_WHITE, fill);
+  tft.drawString(label, x + w / 2, y + h / 2 + yNudge, fontNum);
+}
+
+
+// ------------------------------------------------------
 //                   SETTINGS SCREEN
 // ------------------------------------------------------
 void renderSettingsOnce(){
@@ -112,25 +144,56 @@ void renderSettingsOnce(){
   drawBorder(borderThickness,c);
   clearInnerArea(borderThickness);
 
-  const int pad = 16;
+  // --- Geometry that respects border + battery strip ---
+  const int topStripH = 30;            // height of your battery strip
+  const int gapTop    = 6;             // small gap under the strip
+  const int pad       = 16;            // inner padding at left/right and between widgets
+  const int cornerR   = 6;             // same round-rect radius used in buttons
+
   const int W = tft.width();
   const int H = tft.height();
 
-  const int contentX = borderThickness + pad;
-  const int contentY = borderThickness + 40;
-  const int contentW = W - 2*(borderThickness + pad);
-  const int contentH = H - contentY - borderThickness - pad;
+  // Inner content rect (inside the border)
+  const int innerX = borderThickness;
+  const int innerY = borderThickness;
+  const int innerW = W - 2 * borderThickness;
+  const int innerH = H - 2 * borderThickness;
 
-  int rowH = (contentH - pad*2) / 3;
+  // Content area *below* the battery strip
+  const int contentX = innerX + pad;
+  const int contentY = innerY + topStripH + gapTop;
+  const int contentW = innerW - 2 * pad;
+  const int contentH = innerH - topStripH - gapTop - pad; // leave bottom pad
 
-  gSpeaker   = {contentX, contentY,                  contentW, rowH};
-  gHeadlight = {contentX, contentY + rowH + pad,     contentW, rowH};
-  gERM       = {contentX, contentY + 2*(rowH + pad), contentW, rowH};
+  // 2 columns x 2 rows grid (F1,AUDIO on row1; HAPTICS, Main UI on row2)
+  const int cols = 2;
+  const int rows = 2;
+  const int colGap = pad;
+  const int rowGap = pad;
 
-  drawToggleButton(gSpeaker.x,   gSpeaker.y,   gSpeaker.w,   gSpeaker.h,   "Speaker",  speakerOn);
-  drawToggleButton(gHeadlight.x, gHeadlight.y, gHeadlight.w, gHeadlight.h, "Headlight",headlightOn);
-  drawToggleButton(gERM.x,       gERM.y,       gERM.w,       gERM.h,       "ERM",      ermOn);
+  // compute cell width/height that fully fit
+  const int colW = (contentW - (cols - 1) * colGap) / cols;
+  const int rowH = (contentH - (rows - 1) * rowGap) / rows;
 
+  // top-left of each cell
+  const int x1 = contentX;
+  const int x2 = contentX + colW + colGap;
+  const int y1 = contentY;
+  const int y2 = contentY + rowH + rowGap;
+
+  // cache rects
+  gF1   = { x1, y1, colW, rowH };
+  gAUDIO   = { x2, y1, colW, rowH };
+  gHAPTICS   = { x1, y2, colW, rowH };
+  gMain = { x2, y2, colW, rowH };
+
+  // draw buttons (uses your centered text with y-nudge inside draw* functions)
+  drawToggleButton(gF1.x, gF1.y, gF1.w, gF1.h, "LIGHTS ", lightsOn);
+  drawToggleButton(gAUDIO.x, gAUDIO.y, gAUDIO.w, gAUDIO.h, "AUDIO ", audioOn);
+  drawToggleButton(gHAPTICS.x, gHAPTICS.y, gHAPTICS.w, gHAPTICS.h, "HAPTICS ", hapticsOn);
+  drawButton      (gMain.x, gMain.y, gMain.w, gMain.h, "Main UI", TFT_WHITE, TFT_DARKGREY);
+
+  // battery strip (drawn last, stays under the border and above buttons)
   drawBattery(variable0_100);
 }
 
@@ -152,28 +215,28 @@ void renderAlertOnce(){
 // ------------------------------------------------------
 //                TOGGLE UPDATE (partial redraw)
 // ------------------------------------------------------
-void updateSpeaker()  { drawToggleButton(gSpeaker.x,   gSpeaker.y,   gSpeaker.w,   gSpeaker.h,   "Speaker",  speakerOn); }
-void updateHeadlight(){ drawToggleButton(gHeadlight.x, gHeadlight.y, gHeadlight.w, gHeadlight.h, "Headlight",headlightOn); }
-void updateERM()      { drawToggleButton(gERM.x,       gERM.y,       gERM.w,       gERM.h,       "ERM",      ermOn); }
+void updateToggleF1()    { drawToggleButton(gF1.x,     gF1.y,     gF1.w,     gF1.h,     "LIGHTS ",  lightsOn); }
+void updateToggleAUDIO() { drawToggleButton(gAUDIO.x,  gAUDIO.y,  gAUDIO.w,  gAUDIO.h,  "AUDIO ",   audioOn); }
+void updateToggleHAPTICS(){ drawToggleButton(gHAPTICS.x,gHAPTICS.y,gHAPTICS.w,gHAPTICS.h,"HAPTICS ", hapticsOn); }
 
 
 // ------------------------------------------------------
 //              APPLY HARDWARE OUTPUTS
 // ------------------------------------------------------
 void applyOutputs() {
-  // Speaker: UI only for now, no hardware
+  // lightsOn: UI only for now, no hardware
   
-  // Headlight control with pull-down when off
-  if (headlightOn) {
+  // audioOn: Headlight control with pull-down when off
+  if (audioOn) {
     pinMode(HEADLIGHT, OUTPUT);
     digitalWrite(HEADLIGHT, HIGH);
   } else {
     pinMode(HEADLIGHT, INPUT_PULLDOWN);
   }
 
-  // ERM motor control (both pins together)
-  digitalWrite(ERM1, ermOn ? HIGH : LOW);
-  digitalWrite(ERM2, ermOn ? HIGH : LOW);
+  // hapticsOn: ERM motor control (both pins together)
+  digitalWrite(ERM1, hapticsOn ? HIGH : LOW);
+  digitalWrite(ERM2, hapticsOn ? HIGH : LOW);
 }
 
 
@@ -225,10 +288,10 @@ void updateFallDetection(uint32_t nowMs) {
   bool inCooldown = (nowMs < fallCooldownUntilMs);
   if (inCooldown) return;
 
-  // Make sure FALL_PIN is defined in pins.h
-  int fallLevel = digitalRead(false);
-
-  if (fallLevel == HIGH) {
+  // Check tilt_state from external sensor code
+  bool fallLogical = (tilt_state != 0);
+  
+  if (fallLogical) {
     if (fallHighSinceMs == 0)
       fallHighSinceMs = nowMs;
 
@@ -259,28 +322,31 @@ void handleButtons(uint32_t edges, uint32_t nowMs) {
     return;
   }
 
+  // ---- MAIN SCREEN ----
+  
+
   // ---- SETTINGS SCREEN ----
   if (ui == UI_SETTINGS) {
 
-    // BTN1 → Speaker toggle (UI only)
+    // BTN1 → Lights toggle (UI only)
     if (edges & (1u << 0)) {
-      speakerOn = !speakerOn;
-      updateSpeaker();
-      // no hardware for now
+      lightsOn = !lightsOn;
+      updateToggleF1();
+      applyOutputs();
     }
 
-    // BTN2 → Headlight toggle
+    // BTN2 → Audio toggle (Headlight)
     if (edges & (1u << 1)) {
-      headlightOn = !headlightOn;
+      audioOn = !audioOn;
       applyOutputs();
-      updateHeadlight();
+      updateToggleAUDIO();
     }
 
-    // BTN3 → ERM toggle
+    // BTN3 → Haptics toggle (ERM)
     if (edges & (1u << 2)) {
-      ermOn = !ermOn;
+      hapticsOn = !hapticsOn;
       applyOutputs();
-      updateERM();
+      updateToggleHAPTICS();
     }
 
     return;
@@ -324,7 +390,7 @@ void setup(){
   pinMode(HEADLIGHT, OUTPUT);
   pinMode(ERM1, OUTPUT);
   pinMode(ERM2, OUTPUT);
-  applyOutputs();   // Apply initial ON states
+  applyOutputs();   // Apply initial OFF states (all false initially)
 
   attachInterrupt(digitalPinToInterrupt(BUTTON1), isrBtn1, FALLING);
   attachInterrupt(digitalPinToInterrupt(BUTTON2), isrBtn2, FALLING);
@@ -336,7 +402,7 @@ void setup(){
   timerAlarmEnable(uiTimer);
 
   variable0_100 = readPotPercent();
-  renderSettingsOnce();
+  renderMainOnce();
 }
 
 
