@@ -141,8 +141,10 @@ void loop() {
 
     enum UltrasonicState prev_ultrasonic_state = ultrasonic_state;
     ultrasonic_state = get_ultrasonic_state(prev_ultrasonic_state);
-
- 
+    update_ultrasonic_led(ultrasonic_state);
+    if(haptics){
+        update_ultrasonic_haptics(ultrasonic_state);
+    }
 
     delay(10);
 }
