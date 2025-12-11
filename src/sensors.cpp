@@ -22,6 +22,7 @@ void IRAM_ATTR isr_tilt_F();
 void IRAM_ATTR isr_tilt_B();
 void IRAM_ATTR isr_tilt_R();
 void IRAM_ATTR isr_tilt_L();
+enum UltrasonicState int_to_ultrasonic_state(int);
 
 // ----------------------------------- GLOBAL VARIABLES  --------------------------------//
 int ldr_state = 2; // start out assuming dim, the in-between value
@@ -51,7 +52,8 @@ void sensors_timer_init(){
 void sensors_init() {
   // ldr_init(); // dont need this if doing it the analog way 
   ultrasonic_init();
-  tilt_init();  
+  tilt_init();
+  init_ultrasonic_led();
   // sensors_timer_init(); // this appears to be causing sthe micro to reset
 }
 
@@ -88,16 +90,16 @@ void set_tilt_state(const int gpio_num, int idx){
   // 4 bit val goes like FRONT | BACK | LEFT | RIGHT
   if(level == HIGH){
     tilt_state |= (1 << idx);
-    Serial.println("\n tilt state: ");
-    Serial.print(tilt_state);
+    // Serial.println("\n tilt state: ");
+    // Serial.print(tilt_state);
     // reset the timer and start counting again: will count time starting from last debounce
     tilt_time = millis(); // current time in ms
   }
 
   else if(level == LOW){
     tilt_state &= ~(1 << idx); 
-    Serial.println("\n tilt state: ");
-    Serial.print(tilt_state);
+    // Serial.println("\n tilt state: ");
+    // Serial.print(tilt_state);
     // reset the timer and do not start counting again
     tilt_time = 0; // indicator for timer stopped  
   }
@@ -139,6 +141,7 @@ int check_tilt_time(){
   if((tilt_time > 0) && ((millis() - tilt_time ) > tilt_threshold)) {
     if( tilt_state!=0){
       alert = UI_ALERT;
+      walker_fallen = true; // needs to be turned false in ananyya's code 
       Serial.println("\nwalker has tipped over");
       tilt_time = 0; // turn off the timer so it doesnt keep sending the message 
     }
@@ -205,7 +208,7 @@ int ldr(int pin_num)
 void ultrasonic_init() {
   #ifndef esp_ultrasonics
   Serial.println("\nWe are not using the Ultrasonics on ESP32. Please connect the arduino. \n");
-  //pinMode(ULTRASONIC_PIN, ANALOG);
+  pinMode(ULTRASONIC_PIN, ANALOG);
   #endif
   
   #ifdef esp_ultrasonics
@@ -226,11 +229,164 @@ void ultrasonic_init() {
 
   #endif
 }
+enum UltrasonicState int_to_ultrasonic_state(int int_state){
+  // {FAR, RIGHT_MIDDLE, RIGHT_CLOSE, LEFT_MIDDLE, LEFT_CLOSE, CENTER_MIDDLE, CENTER_CLOSE, INVALID_STATE};
+  if(int_state == 0) return FAR;
+  if(int_state == 1) return RIGHT_MIDDLE;
+  if(int_state == 2) return RIGHT_CLOSE;
+  if(int_state == 3) return LEFT_MIDDLE;
+  if(int_state == 4) return LEFT_CLOSE;
+  if(int_state == 5) return CENTER_MIDDLE;
+  if(int_state == 6) return CENTER_CLOSE;
+  return(INVALID_STATE);
 
-int get_ultrasonic_state(){
-  return ultrasonic_state;
 }
 
+enum UltrasonicState get_ultrasonic_state(enum UltrasonicState prev){
+  int analog_in_val = analogRead(ULTRASONIC_PIN); // read from the arduino
+  if(analog_in_val == 0) return(prev);
+  delay(100);
+  float voltage_level =  (float)analog_in_val * 3.3 / 4095.0; // see what the voltge sent actually is
+  voltage_level *= 3.04/2.9;
+  int state = (int) round((voltage_level - 3.3/14.0 ) * 7.0/3.3); // should round to a number 0-6
+  state = int_to_ultrasonic_state(state);
+
+  if(state != prev) {
+    Serial.print("\nUltrasonic analog in value: ");
+    Serial.println(analog_in_val);
+    Serial.print("Ultrasonic voltage level: ");
+    Serial.println(voltage_level);
+    Serial.print("Ultrasonic state: ");
+    if(state==0) Serial.println("FAR");
+    if(state==1) Serial.println("RIGHT_MIDDLE");
+    if(state==2) Serial.println("RIGHT_CLOSE");
+    if(state==3) Serial.println("LEFT_MIDDLE");
+    if(state==4) Serial.println("LEFT_CLOSE");
+    if(state==5) Serial.println("CENTER_MIDDLE");
+    if(state==6) Serial.println("CENTER_CLOSE");
+    if(state==7) Serial.println("INVALID_STATE");
+    // Serial.println(state);
+    // update outputs
+  }
+
+  
+  return((enum UltrasonicState )state);
+}
+
+void init_ultrasonics_led(){
+  pinMode(GREEN_LED_GPIO, OUTPUT);
+  pinMode(YELLOW_LED_GPIO, OUTPUT);
+  pinMode(RED_LED_GPIO, OUTPUT);
+
+  digitalWrite(GREEN_LED_GPIO, LOW);
+  digitalWrite(YELLOW_LED_GPIO,LOW);
+  digitalWrite(RED_LED_GPIO,LOW);
+}
+
+void update_ultrasonic_led(enum UltrasonicState state){
+  digitalWrite(GREEN_LED_GPI0, LOW);
+  digitalWrite(YELLOW_LED_GPIO,LOW);
+  digitalWrite(RED_LED_GPIO,LOW);
+  switch(state){
+    case FAR:
+      digitalWrite(GREEN_LED_GPIO, HIGH);
+      break;
+    case RIGHT_MIDDLE:
+    case LEFT_MIDDLE:
+    case CENTER_MIDDLE:
+      digitalWrite(YELLOW_LED_GPIO, HIGH);
+      break;
+    case RIGHT_CLOSE:
+    case LEFT_CLOSE:
+    case CENTER_CLOSE:
+      digitalWrite(RED_LED_GPIO, HIGH);
+      break;
+    case INVALID_STATE:
+    default:
+      break;
+  }
+}
+
+void hapticHell(int stateL, int stateR)
+{ //left side
+  if (stateL == 2)
+  {
+    digitalWrite(HAPTIC_L_GPIO, HIGH);
+    delay(500);
+    digitalWrite(HAPTIC_L_GPIO, LOW);
+    delay(500);
+  }
+  else if(stateL == 1)
+  { 
+    for(int i = 0; i <2; i++){
+      digitalWrite(HAPTIC_L_GPIO, HIGH);
+      delay(250);
+      digitalWrite(HAPTIC_L_GPIO, LOW);
+      delay(250);
+    }
+  } else{
+    digitalWrite(HAPTIC_L_GPIO, LOW);
+  }
+  //right side
+  if(stateR ==2){
+    digitalWrite(HAPTIC_R_GPIO,HIGH);
+    delay(500);
+    digitalWrite(HAPTIC_R_GPIO,LOW);
+    delay(500);
+  }else if(stateR ==1){
+    for (int i=0; i <2; i++){
+      digitalWrite(HAPTIC_R_GPIO, HIGH);
+      delay(500);
+      digitalWrite(HAPTIC_R_GPIO, LOW);
+      delay(500);
+    }
+  }else{
+    digitalWrite(HAPTIC_R_GPIO, LOW);
+  }
+}
+
+void update_ultrasonics_haptics(enum UltrasonicState state){
+  int left_state = 0;
+  int right_state = 0;
+
+  switch(state){
+    case FAR:
+      left_state = 0;
+      right_state = 0;
+      break;
+    case RIGHT_MIDDLE:
+      left_state = 0;
+      right_state = 1;
+      break;
+    case RIGHT_CLOSE:
+      left_state = 0;
+      right_state = 2;
+      break;
+    case LEFT_MIDDLE:
+      left_state = 1;
+      right_state = 0;
+      break;
+    case LEFT_CLOSE:
+      left_state = 2;
+      right_state = 0;
+      break;
+    case CENTER_MIDDLE:
+      left_state = 1;
+      right_state = 1;
+      break;
+    case CENTER_CLOSE:
+      left_state = 2;
+      right_state = 2;
+      break;
+    case INVALID_STATE:
+    default:
+      left_state = 0;
+      right_state = 0;
+      break;
+  }
+
+  hapticHell(left_state, right_state);
+}
 #ifdef esp_ultrasonics
 
 int ultrasonic(int TRIG_PIN, int ECHO_PIN){

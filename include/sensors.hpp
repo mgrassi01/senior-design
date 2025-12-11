@@ -27,7 +27,8 @@ const int BUFFER1 = 2;
 const int BUFFER2 = 2;
 const int BUFFER3 = 2;
 
-enum UltrasonicState {FAR, RIGHT_MIDDLE, RIGHT_CLOSE, LEFT_MIDDLE, LEFT_CLOSE, CENTER_MIDDLE, CENTER_CLOSE};
+enum UltrasonicState {FAR, RIGHT_MIDDLE, RIGHT_CLOSE, LEFT_MIDDLE, LEFT_CLOSE, CENTER_MIDDLE, CENTER_CLOSE, INVALID_STATE};
+
 
 // constant values, can be changed 
 const int VERY_DIM = 1.75;
@@ -38,3 +39,8 @@ const int LDR_BUFFER = 0.05;
 void sensors_init(); // initilizes the tilt sensors and ultrasonic ADC pin 
 void set_tilt_state(const int, int); // gets the current 4 bit value of tilt
 int check_tilt_time(); // sees if the walker has fallen over long enough to consider it a valid fall, returns the state 
+enum UltrasonicState get_ultrasonic_state(enum UltrasonicState); // gets the current ultrasonic state based on the analog value sent from the arduino
+void int_ultrasonics_led();
+void update_ultrasonic_led(enum UltrasonicState); // updates the ultrasonic led based on the current state
+void hapticHell(int, int); // activates the haptics based on the left and right state
+void update_ultrasonics_haptics(enum UltrasonicState); // updates the haptics based on the current ultrasonic state
