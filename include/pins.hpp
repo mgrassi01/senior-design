@@ -4,7 +4,7 @@
 
 // #define wifi_en
 // #define esp_ultrasonics // keep commented
-// #define new_esp
+#define new_esp
 
 // ===================== EXTERNS =====================
 enum UiState {UI_MAIN, UI_SETTINGS, UI_ALERT};   // add UI_ALERT
@@ -119,9 +119,9 @@ const int LED_F3 = LED_C;
 
 // ===================== INPUT PINS ===========================
 // Buttons (all input-only pins)
-#define BUTTON1    36
+#define BUTTON1    35
 #define BUTTON2    34
-#define BUTTON3    35
+#define BUTTON3    25
 #define BUTTON4    39
 // ---------- BUTTON PINS (safe) ----------
 const int LIGHTS_BTN_PIN = BUTTON1;
@@ -142,7 +142,7 @@ const int ULTRASONIC_PIN = ADC_ULTRA; // do not use 26, find another ADC pin
 
 
 // ===================== DAC OUTPUT ===========================
-#define DAC_OUT     25
+// #define DAC_OUT     25
 
 
 

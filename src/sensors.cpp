@@ -244,21 +244,29 @@ enum UltrasonicState int_to_ultrasonic_state(int int_state){
 enum UltrasonicState get_ultrasonic_state(enum UltrasonicState prev){
   int analog_in_val = analogRead(ULTRASONIC_PIN); // read from the arduino
   if(analog_in_val == 0) return(prev);
-
+  delay(100);
   float voltage_level =  (float)analog_in_val * 3.3 / 4095.0; // see what the voltge sent actually is
-
-  int state = (int) round( (voltage_level - 3.3/14.0 ) * 7.0/3.3); // should round to a number 0-6
+  voltage_level *= 3.04/2.9;
+  int state = (int) round((voltage_level - 3.3/14.0 ) * 7.0/3.3); // should round to a number 0-6
   state = int_to_ultrasonic_state(state);
 
-  // if(state != prev) {
+  if(state != prev) {
     Serial.print("\nUltrasonic analog in value: ");
     Serial.println(analog_in_val);
     Serial.print("Ultrasonic voltage level: ");
     Serial.println(voltage_level);
     Serial.print("Ultrasonic state: ");
-    Serial.println(state);
+    if(state==0) Serial.println("FAR");
+    if(state==1) Serial.println("RIGHT_MIDDLE");
+    if(state==2) Serial.println("RIGHT_CLOSE");
+    if(state==3) Serial.println("LEFT_MIDDLE");
+    if(state==4) Serial.println("LEFT_CLOSE");
+    if(state==5) Serial.println("CENTER_MIDDLE");
+    if(state==6) Serial.println("CENTER_CLOSE");
+    if(state==7) Serial.println("INVALID_STATE");
+    // Serial.println(state);
     // update outputs
-  // }
+  }
 
   
   return((enum UltrasonicState )state);
