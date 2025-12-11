@@ -52,7 +52,8 @@ void sensors_timer_init(){
 void sensors_init() {
   // ldr_init(); // dont need this if doing it the analog way 
   ultrasonic_init();
-  tilt_init();  
+  tilt_init();
+  init_ultrasonic_led();
   // sensors_timer_init(); // this appears to be causing sthe micro to reset
 }
 
@@ -264,6 +265,120 @@ enum UltrasonicState get_ultrasonic_state(enum UltrasonicState prev){
   return((enum UltrasonicState )state);
 }
 
+void init_ultrasonics_led(){
+  pinMode(GREEN_LED_GPIO, OUTPUT);
+  pinMode(YELLOW_LED_GPIO, OUTPUT);
+  pinMode(RED_LED_GPIO, OUTPUT);
+
+  digitalWrite(GREEN_LED_GPIO, LOW);
+  digitalWrite(YELLOW_LED_GPIO,LOW);
+  digitalWrite(RED_LED_GPIO,LOW);
+}
+
+void update_ultrasonic_led(enum UltrasonicState state){
+  digitalWrite(GREEN_LED_GPI0, LOW);
+  digitalWrite(YELLOW_LED_GPIO,LOW);
+  digitalWrite(RED_LED_GPIO,LOW);
+  switch(state){
+    case FAR:
+      digitalWrite(GREEN_LED_GPIO, HIGH);
+      break;
+    case RIGHT_MIDDLE:
+    case LEFT_MIDDLE:
+    case CENTER_MIDDLE:
+      digitalWrite(YELLOW_LED_GPIO, HIGH);
+      break;
+    case RIGHT_CLOSE:
+    case LEFT_CLOSE:
+    case CENTER_CLOSE:
+      digitalWrite(RED_LED_GPIO, HIGH);
+      break;
+    case INVALID_STATE:
+    default:
+      break;
+  }
+}
+
+void hapticHell(int stateL, int stateR)
+{ //left side
+  if (stateL == 2)
+  {
+    digitalWrite(HAPTIC_L_GPIO, HIGH);
+    delay(500);
+    digitalWrite(HAPTIC_L_GPIO, LOW);
+    delay(500);
+  }
+  else if(stateL == 1)
+  { 
+    for(int i = 0; i <2; i++){
+      digitalWrite(HAPTIC_L_GPIO, HIGH);
+      delay(250);
+      digitalWrite(HAPTIC_L_GPIO, LOW);
+      delay(250);
+    }
+  } else{
+    digitalWrite(HAPTIC_L_GPIO, LOW);
+  }
+  //right side
+  if(stateR ==2){
+    digitalWrite(HAPTIC_R_GPIO,HIGH);
+    delay(500);
+    digitalWrite(HAPTIC_R_GPIO,LOW);
+    delay(500);
+  }else if(stateR ==1){
+    for (int i=0; i <2; i++){
+      digitalWrite(HAPTIC_R_GPIO, HIGH);
+      delay(500);
+      digitalWrite(HAPTIC_R_GPIO, LOW);
+      delay(500);
+    }
+  }else{
+    digitalWrite(HAPTIC_R_GPIO, LOW);
+  }
+}
+
+void update_ultrasonics_haptics(enum UltrasonicState state){
+  int left_state = 0;
+  int right_state = 0;
+
+  switch(state){
+    case FAR:
+      left_state = 0;
+      right_state = 0;
+      break;
+    case RIGHT_MIDDLE:
+      left_state = 0;
+      right_state = 1;
+      break;
+    case RIGHT_CLOSE:
+      left_state = 0;
+      right_state = 2;
+      break;
+    case LEFT_MIDDLE:
+      left_state = 1;
+      right_state = 0;
+      break;
+    case LEFT_CLOSE:
+      left_state = 2;
+      right_state = 0;
+      break;
+    case CENTER_MIDDLE:
+      left_state = 1;
+      right_state = 1;
+      break;
+    case CENTER_CLOSE:
+      left_state = 2;
+      right_state = 2;
+      break;
+    case INVALID_STATE:
+    default:
+      left_state = 0;
+      right_state = 0;
+      break;
+  }
+
+  hapticHell(left_state, right_state);
+}
 #ifdef esp_ultrasonics
 
 int ultrasonic(int TRIG_PIN, int ECHO_PIN){
