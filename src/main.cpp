@@ -103,7 +103,12 @@ void setup(){
 
 void loop() {
     static bool prevAlert = false;
-
+    static bool testtrig = false;
+    // if(!testtrig){
+    //     tilt_state = 1;
+    //     Serial.println("tilt to 1 test");
+    //     testtrig = true;
+    // }
     display_loop();
     #ifdef feedback_en
         feedback_update();
@@ -126,6 +131,9 @@ void loop() {
     
     if(!nowAlert && prevAlert) {
         Serial.println("Exited ALERT state");
+        if(cancel_pressed()){
+            Serial.println("User cancelled alert");
+        }
     }
                                                                     
     prevAlert = nowAlert;
