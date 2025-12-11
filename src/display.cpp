@@ -18,9 +18,9 @@ uint16_t lastBorderColor = 0;
 // lightsOn (F1): Speaker (UI only, no hardware)
 // audioOn (F2): Headlight (HEADLIGHT pin)
 // hapticsOn (F3): ERM (ERM1 + ERM2 pins)
-volatile bool lightsOn   = false;
-volatile bool audioOn    = false;
-volatile bool hapticsOn  = false;
+volatile bool lightsOn   = true;
+volatile bool audioOn    = true;
+volatile bool hapticsOn  = true;
 
 // ---------- FALL DETECTION ----------
 const uint32_t FALL_COOLDOWN_MS = 1UL * 10UL * 1000UL; // 10 seconds for testing
@@ -42,7 +42,7 @@ hw_timer_t* uiTimer = nullptr;
 
 // ---------- RECTANGLES FOR LAYOUT ----------
 struct Rect { int x,y,w,h; };
-Rect gF1, gAUDIO, gHAPTICS, gMain;
+Rect gF1, gAUDIO, gHAPTICS;
 
 // ------------------------------------------------------
 //                COLOR HELPERS
@@ -102,23 +102,6 @@ void drawBattery(int pct){
   tft.drawString("Battery: " + String(pct) + "%", x+innerW/2, y+h/2, 4);
 }
 
-
-// ------------------------------------------------------
-//                   MAIN SCREEN
-// ------------------------------------------------------
-void renderMainOnce(){
-  uint16_t c=borderColorFromVariable(variable0_100); 
-  lastBorderColor=c;
-  drawBorder(borderThickness,c); 
-  clearInnerArea(borderThickness);
-
-  int w=tft.width(), h=tft.height();
-  int bw=w*3/4, bh=100, bx=(w-bw)/2, by=(h-bh)/2;
-  drawButton(bx,by,bw,bh,"Settings",TFT_WHITE,TFT_DARKGREY);
-  drawBattery(variable0_100);
-}
-
-
 // Helper function for drawButton
 void drawButton(int x, int y, int w, int h, const char* label, uint16_t outline, uint16_t fill) {
   tft.fillRoundRect(x, y, w, h, 6, fill);
@@ -133,6 +116,7 @@ void drawButton(int x, int y, int w, int h, const char* label, uint16_t outline,
 }
 
 
+
 // ------------------------------------------------------
 //                   SETTINGS SCREEN
 // ------------------------------------------------------
@@ -144,56 +128,25 @@ void renderSettingsOnce(){
   drawBorder(borderThickness,c);
   clearInnerArea(borderThickness);
 
-  // --- Geometry that respects border + battery strip ---
-  const int topStripH = 30;            // height of your battery strip
-  const int gapTop    = 6;             // small gap under the strip
-  const int pad       = 16;            // inner padding at left/right and between widgets
-  const int cornerR   = 6;             // same round-rect radius used in buttons
-
+  const int pad = 16;
   const int W = tft.width();
   const int H = tft.height();
 
-  // Inner content rect (inside the border)
-  const int innerX = borderThickness;
-  const int innerY = borderThickness;
-  const int innerW = W - 2 * borderThickness;
-  const int innerH = H - 2 * borderThickness;
+  const int contentX = borderThickness + pad;
+  const int contentY = borderThickness + 40;
+  const int contentW = W - 2*(borderThickness + pad);
+  const int contentH = H - contentY - borderThickness - pad;
 
-  // Content area *below* the battery strip
-  const int contentX = innerX + pad;
-  const int contentY = innerY + topStripH + gapTop;
-  const int contentW = innerW - 2 * pad;
-  const int contentH = innerH - topStripH - gapTop - pad; // leave bottom pad
+  int rowH = (contentH - pad*2) / 3;
 
-  // 2 columns x 2 rows grid (F1,AUDIO on row1; HAPTICS, Main UI on row2)
-  const int cols = 2;
-  const int rows = 2;
-  const int colGap = pad;
-  const int rowGap = pad;
+  gF1      = {contentX, contentY,                  contentW, rowH};
+  gAUDIO   = {contentX, contentY + rowH + pad,     contentW, rowH};
+  gHAPTICS = {contentX, contentY + 2*(rowH + pad), contentW, rowH};
 
-  // compute cell width/height that fully fit
-  const int colW = (contentW - (cols - 1) * colGap) / cols;
-  const int rowH = (contentH - (rows - 1) * rowGap) / rows;
+  drawToggleButton(gF1.x,      gF1.y,      gF1.w,      gF1.h,      "LIGHTS ",   lightsOn);
+  drawToggleButton(gAUDIO.x,   gAUDIO.y,   gAUDIO.w,   gAUDIO.h,   "AUDIO ",    audioOn);
+  drawToggleButton(gHAPTICS.x, gHAPTICS.y, gHAPTICS.w, gHAPTICS.h, "HAPTICS ",  hapticsOn);
 
-  // top-left of each cell
-  const int x1 = contentX;
-  const int x2 = contentX + colW + colGap;
-  const int y1 = contentY;
-  const int y2 = contentY + rowH + rowGap;
-
-  // cache rects
-  gF1   = { x1, y1, colW, rowH };
-  gAUDIO   = { x2, y1, colW, rowH };
-  gHAPTICS   = { x1, y2, colW, rowH };
-  gMain = { x2, y2, colW, rowH };
-
-  // draw buttons (uses your centered text with y-nudge inside draw* functions)
-  drawToggleButton(gF1.x, gF1.y, gF1.w, gF1.h, "LIGHTS ", lightsOn);
-  drawToggleButton(gAUDIO.x, gAUDIO.y, gAUDIO.w, gAUDIO.h, "AUDIO ", audioOn);
-  drawToggleButton(gHAPTICS.x, gHAPTICS.y, gHAPTICS.w, gHAPTICS.h, "HAPTICS ", hapticsOn);
-  drawButton      (gMain.x, gMain.y, gMain.w, gMain.h, "Main UI", TFT_WHITE, TFT_DARKGREY);
-
-  // battery strip (drawn last, stays under the border and above buttons)
   drawBattery(variable0_100);
 }
 
@@ -289,6 +242,7 @@ void updateFallDetection(uint32_t nowMs) {
   if (inCooldown) return;
 
   // Check tilt_state from external sensor code
+  bool tilt_state = false;
   bool fallLogical = (tilt_state != 0);
   
   if (fallLogical) {
@@ -402,7 +356,7 @@ void setup(){
   timerAlarmEnable(uiTimer);
 
   variable0_100 = readPotPercent();
-  renderMainOnce();
+  renderSettingsOnce();
 }
 
 
