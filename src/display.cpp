@@ -12,7 +12,7 @@ TFT_eSPI tft;
 int adc_min_cal = 0, adc_max_cal = 4095;
 float potFilt = 0.0f;
 const float alpha = 0.15f;
-// ---------- FALL ALERT (GPIO35) ----------
+// ---------- FALL ALERT (35) ----------
 // enum UiState { UI_MAIN, UI_SETTINGS, UI_ALERT };   // add UI_ALERT
 volatile UiState ui = UI_SETTINGS;           // update your existing declaration
 //cancel button 
@@ -33,7 +33,6 @@ uint16_t lastBorderColor = 0;
 
 
 // toggles
-volatile bool lightsOn = false, audioOn = false, hapticsOn = false;
 
 // ---------- Interrupt flags / debounce ----------
 volatile uint32_t buttonEdgeFlags = 0;   // bit0..3 set by ISRs
@@ -188,9 +187,9 @@ void renderSettingsOnce() {
   gMain = { x2, y2, colW, rowH };
 
   // draw buttons (uses your centered text with y-nudge inside draw* functions)
-  drawToggleButton(gF1.x, gF1.y, gF1.w, gF1.h, "LIGHTS ", lightsOn);
-  drawToggleButton(gAUDIO.x, gAUDIO.y, gAUDIO.w, gAUDIO.h, "AUDIO ", audioOn);
-  drawToggleButton(gHAPTICS.x, gHAPTICS.y, gHAPTICS.w, gHAPTICS.h, "HAPTICS ", hapticsOn);
+  drawToggleButton(gF1.x, gF1.y, gF1.w, gF1.h, "LIGHTS ", lights);
+  drawToggleButton(gAUDIO.x, gAUDIO.y, gAUDIO.w, gAUDIO.h, "AUDIO ", audio);
+  drawToggleButton(gHAPTICS.x, gHAPTICS.y, gHAPTICS.w, gHAPTICS.h, "HAPTICS ", haptics);
   drawButton      (gMain.x, gMain.y, gMain.w, gMain.h, "Main UI", TFT_WHITE, TFT_DARKGREY);
 
   // battery strip (drawn last, stays under the border and above buttons)
@@ -199,18 +198,18 @@ void renderSettingsOnce() {
 
 
 // ---------- Partial redraw helpers (no whole-screen clears) ----------
-void updateToggleF1(){ drawToggleButton(gF1.x,gF1.y,gF1.w,gF1.h,"LIGHTS ",lightsOn); }
-void updateToggleAUDIO(){ drawToggleButton(gAUDIO.x,gAUDIO.y,gAUDIO.w,gAUDIO.h,"AUDIO ",audioOn); }
-void updateToggleHAPTICS(){ drawToggleButton(gHAPTICS.x,gHAPTICS.y,gHAPTICS.w,gHAPTICS.h,"HAPTICS ",hapticsOn); }
+void updateToggleF1(){ drawToggleButton(gF1.x,gF1.y,gF1.w,gF1.h,"LIGHTS ",lights); }
+void updateToggleAUDIO(){ drawToggleButton(gAUDIO.x,gAUDIO.y,gAUDIO.w,gAUDIO.h,"AUDIO ",audio); }
+void updateToggleHAPTICS(){ drawToggleButton(gHAPTICS.x,gHAPTICS.y,gHAPTICS.w,gHAPTICS.h,"HAPTICS ",haptics); }
 
 void applyOutputs() {
-  // Serial.println(lightsOn ? "F1 is on": "F1 is off");
-  // Serial.println(audioOn ? "AUDIO is on": "AUDIO is off");
-  // Serial.println(hapticsOn ? "HAPTICS is on": "HAPTICS is off");
+  // Serial.println(lights ? "F1 is on": "F1 is off");
+  // Serial.println(audio ? "AUDIO is on": "AUDIO is off");
+  // Serial.println(haptics ? "HAPTICS is on": "HAPTICS is off");
 
-  // digitalWrite(LED_F1, lightsOn ? HIGH : LOW);
-  // digitalWrite(LED_AUDIO, audioOn ? HIGH : LOW);
-  // digitalWrite(LED_HAPTICS, hapticsOn ? HIGH : LOW);
+  // digitalWrite(LED_F1, lights ? HIGH : LOW);
+  // digitalWrite(LED_AUDIO, audio ? HIGH : LOW);
+  // digitalWrite(LED_HAPTICS, haptics ? HIGH : LOW);
 }
 
 
@@ -275,7 +274,7 @@ void display_setup(){
   // pinMode(LED_F1, OUTPUT);
   // pinMode(LED_AUDIO, OUTPUT);
   // pinMode(LED_HAPTICS, OUTPUT);
-  applyOutputs();                 // reflect initial lightsOn/audioOn/hapticsOn (all off now)
+  applyOutputs();                 // reflect initial lights/audio/haptics (all off now)
 
   // initial UI
   variable0_100 = readPotPercent();
@@ -367,9 +366,9 @@ void display_loop(){
         }
       }
     else if (ui == UI_SETTINGS) {
-      if (edges & (1u<<0)) { lightsOn = !lightsOn; applyOutputs(); updateToggleF1(); }
-      if (edges & (1u<<1)) { audioOn = !audioOn; applyOutputs(); updateToggleAUDIO(); }
-      if (edges & (1u<<2)) { hapticsOn = !hapticsOn; applyOutputs(); updateToggleHAPTICS(); }
+      if (edges & (1u<<0)) { lights = !lights; applyOutputs(); updateToggleF1(); }
+      if (edges & (1u<<1)) { audio = !audio; applyOutputs(); updateToggleAUDIO(); }
+      if (edges & (1u<<2)) { haptics = !haptics; applyOutputs(); updateToggleHAPTICS(); }
       if ((edges & (1u<<3)) && (nowMs - lastUiChangeMs >= uiCooldownMs)) {
         lastUiChangeMs = nowMs;
         ui = UI_MAIN;
